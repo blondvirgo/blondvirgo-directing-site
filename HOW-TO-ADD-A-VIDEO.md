@@ -87,7 +87,11 @@ You now have a branch and a pull request. Keep its page open.
   watch** to **Anyone**.
 - Effects: in `projects.js` you can switch off `scanlines`, `grain`,
   `fxOnLoad` (the glitch when the page opens), `fxOnTiles` (the tear when a
-  video opens) and `colourFringe` (red/cyan in the glitches; off = white).
+  video opens), `colourFringe` (red/cyan in the glitches; off = white),
+  `pageGlitch` (the rare whole-page glitch, with `averageSeconds`) and the
+  liquid `cursor` (with `colourWithSpeed`). Under `titleSwap`,
+  `negativeOnClick` makes every click on the big title flip the site to
+  negative and back.
 - To change the order, move the blocks. The one with `featured: true` always
   shows first.
 - To switch the film grain off: in `projects.js` change `grain: true` to

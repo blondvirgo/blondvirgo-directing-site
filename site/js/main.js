@@ -179,6 +179,18 @@
     }));
   }
 
+  // sticky negative mode: the footer wordmark flips the whole site
+  var negToggle = doc.getElementById("negative-toggle");
+  function setNegative(on) {
+    root.classList.toggle("is-negative", !!on);
+    if (negToggle) negToggle.setAttribute("aria-pressed", on ? "true" : "false");
+  }
+  if (negToggle) {
+    negToggle.addEventListener("click", function () {
+      setNegative(!root.classList.contains("is-negative"));
+    });
+  }
+
   /* ---- 3. FX library: BLONDVIRGO <-> ALEX RUSU ----------------------
      Every effect: name, how long it runs, and when (0–1) the word swaps.
      "letters" effects animate each letter; the others animate the whole
@@ -189,11 +201,18 @@
     { name: "rgb",       dur: FX_DUR, swapAt: 0.5,  distort: 18 },
     { name: "vhs",       dur: FX_DUR, swapAt: 0.5,  distort: 30 },
     { name: "flicker",   dur: FX_DUR, swapAt: 0.49 },
-    { name: "negative",  dur: 900,    swapAt: 0.5,  hold: 450 },
     { name: "crush",     dur: FX_DUR, swapAt: 0.51, letters: true },
     { name: "static",    dur: FX_DUR, swapAt: 0.5,  distort: 60 },
-    { name: "slide",     dur: FX_DUR, swapAt: 0.45, letters: true }
+    { name: "slide",     dur: FX_DUR, swapAt: 0.45, letters: true },
+    { name: "collage",   dur: 1500,   swapAt: 0.5,  letters: true, media: true },
+    { name: "flip",      dur: FX_DUR, swapAt: 0.5,  letters: true }
   ];
+
+  // the featured still, cut into the letters by the "collage" effect
+  var fillStill = (function () {
+    var p = projects.filter(function (x) { return x.still; })[0];
+    return p ? "url('/images/" + p.still + "')" : "";
+  })();
 
   /* distortion: warps the word through the SVG filter in index.html.
      strength rises to "peak" and falls back over "dur" milliseconds.  */
@@ -215,10 +234,14 @@
     })(t0);
   }
 
-  // short full-page inversion ("negative hit")
-  function negativeHit(ms) {
-    root.classList.add("fx-negative");
-    setTimeout(function () { root.classList.remove("fx-negative"); }, ms);
+  // flip the whole site to negative (or back) with a tear
+  function toggleNegative() {
+    setNegative(!root.classList.contains("is-negative"));
+    if (reduceMotion) return;
+    root.classList.remove("fx-negative-switch");
+    void root.offsetWidth;
+    root.classList.add("fx-negative-switch");
+    setTimeout(function () { root.classList.remove("fx-negative-switch"); }, 520);
   }
 
   var wordmark = doc.getElementById("wordmark");
@@ -244,12 +267,15 @@
     letter.style.setProperty("--dy", rnd(-0.45, 0.45).toFixed(2) + "em");
     letter.style.setProperty("--dr", rnd(-10, 10).toFixed(1) + "deg");
     letter.style.setProperty("--d", rnd(0, 0.35).toFixed(2) + "s");
+    letter.style.setProperty("--bx", rnd(0, 100).toFixed(0) + "%");
+    letter.style.setProperty("--by", rnd(0, 100).toFixed(0) + "%");
+    if (fillStill) letter.style.setProperty("--fill", fillStill);
   }
 
   function letters() { return wordmark.querySelectorAll(".wordmark__letter"); }
 
   function pickEffect(wanted) {
-    var pool = EFFECTS.filter(function (f) { return f.name !== lastFx; });
+    var pool = EFFECTS.filter(function (f) { return f.name !== lastFx && (!f.media || fillStill); });
     var fx = wanted ? EFFECTS.filter(function (f) { return f.name === wanted; })[0] : null;
     return fx || pool[Math.floor(Math.random() * pool.length)];
   }
@@ -264,7 +290,7 @@
     var fx = reduceMotion ? { name: "fade", dur: 1200, swapAt: 0.5, letters: true } : pickEffect(wanted);
     lastFx = fx.name;
     var next = swapText ? (nameIndex === 0 ? 1 : 0) : nameIndex;
-    var hit = fromClick && settings.negativeOnClick !== false && !reduceMotion && fx.name !== "negative";
+    var flip = fromClick && swapCfg.negativeOnClick !== false;   // the click flips the site to negative/back
 
     letters().forEach(scatter);
     if (fx.distort) distort(fx.distort, fx.dur);
@@ -278,14 +304,13 @@
         letters().forEach(scatter);
         void wordmark.offsetWidth;
         wordmark.classList.remove("is-breaking");
-        if (hit) negativeHit(220);
+        if (flip) toggleNegative();
       }, fx.dur * fx.swapAt);
       setTimeout(function () { busy = false; drain(); }, fx.dur);
       return;
     }
 
     wordmark.classList.add("fx-" + fx.name);
-    if (fx.name === "negative") root.classList.add("fx-negative");
 
     setTimeout(function () {
       nameIndex = next;
@@ -298,12 +323,8 @@
       } else {
         setWord(names[nameIndex]);
       }
-      if (hit) negativeHit(220);
+      if (flip) toggleNegative();
     }, fx.dur * fx.swapAt);
-
-    if (fx.name === "negative") {
-      setTimeout(function () { root.classList.remove("fx-negative"); }, fx.dur * fx.swapAt + fx.hold);
-    }
 
     setTimeout(function () {
       wordmark.classList.remove("fx-" + fx.name);
@@ -393,26 +414,41 @@
     n.addEventListener("click", function () { glitchText(n); });
   });
 
-  // sticky negative mode: the footer wordmark flips the whole site
-  var negToggle = doc.getElementById("negative-toggle");
-  function setNegative(on) {
-    root.classList.toggle("is-negative", !!on);
-    if (negToggle) negToggle.setAttribute("aria-pressed", on ? "true" : "false");
+  /* ---- rare whole-page glitch ---------------------------------------
+     Checked every 5s; fires with a probability that averages one hit per
+     pageGlitch.averageSeconds. Only animates header/main/footer, so
+     clicks, scrolling and the player are never blocked.                */
+  var pg = settings.pageGlitch || {};
+  function pageGlitch() {
+    if (reduceMotion) return;
+    root.classList.remove("fx-page");
+    void root.offsetWidth;
+    root.classList.add("fx-page");
+    setTimeout(function () { root.classList.remove("fx-page"); }, 520);
   }
-  if (negToggle) {
-    negToggle.addEventListener("click", function () {
-      setNegative(!root.classList.contains("is-negative"));
-    });
+  if (pg.enabled !== false && !reduceMotion) {
+    var avg = Number(pg.averageSeconds) || 75;
+    setInterval(function () {
+      if (doc.hidden || busy || (player && !player.hidden)) return;
+      if (Math.random() < 5 / avg) pageGlitch();
+    }, 5000);
   }
+  window.BV.pageGlitch = pageGlitch;
 
-  /* ---- custom cursor (desktop, fine pointer only) ------------------ */
+  /* ---- liquid cursor (desktop, fine pointer only) ------------------- */
   var cursor = doc.getElementById("cursor");
-  if (cursor && canHover && !reduceMotion && settings.cursor !== false) {
-    var cx = -100, cy = -100, tx = -100, ty = -100, shown = false;
+  var cursorCfg = settings.cursor === false ? { enabled: false } : (settings.cursor || {});
+  if (cursor && canHover && !reduceMotion && cursorCfg.enabled !== false) {
+    var blobs = Array.prototype.slice.call(cursor.querySelectorAll(".cursor__blob"));
+    var canMixColour = !!(window.CSS && CSS.supports && CSS.supports("color", "color-mix(in srgb, red 50%, white)"));
+    var pts = blobs.map(function () { return { x: -100, y: -100 }; });
+    var tx = -100, ty = -100, shown = false, lastX = -100, lastY = -100, speed = 0, angle = 0, lastT = performance.now();
+    var trail = 1 - Math.min(0.95, Math.max(0.05, parseFloat(getComputedStyle(root).getPropertyValue("--cursor-trail")) || 0.55));
     root.classList.add("has-cursor");
+
     doc.addEventListener("mousemove", function (e) {
       tx = e.clientX; ty = e.clientY;
-      if (!shown) { cx = tx; cy = ty; shown = true; }
+      if (!shown) { pts.forEach(function (p) { p.x = tx; p.y = ty; }); lastX = tx; lastY = ty; shown = true; }
       var over = e.target.closest ? e.target.closest("a, button, .tile__link") : null;
       cursor.classList.toggle("is-play", !!(over && over.classList.contains("tile__link")));
       cursor.classList.toggle("is-link", !!(over && !over.classList.contains("tile__link")));
@@ -421,12 +457,42 @@
     doc.addEventListener("mouseup", function () { cursor.classList.remove("is-down"); });
     doc.addEventListener("mouseleave", function () { cursor.style.opacity = "0"; });
     doc.addEventListener("mouseenter", function () { cursor.style.opacity = ""; });
-    (function follow() {
-      cx += (tx - cx) * 0.35;                               // a little lag = smooth
-      cy += (ty - cy) * 0.35;
-      cursor.style.transform = "translate(" + cx.toFixed(1) + "px, " + cy.toFixed(1) + "px)" + (cursor.classList.contains("is-down") ? " scale(0.7)" : "");
+
+    (function follow(now) {
+      var dt = Math.max(1, now - lastT); lastT = now;
+      // speed in px per ms, smoothed
+      var dx = tx - lastX, dy = ty - lastY;
+      var v = Math.sqrt(dx * dx + dy * dy) / dt;
+      speed += (v - speed) * 0.2;
+      if (v > 0.05) angle = Math.atan2(dy, dx);
+      lastX = tx; lastY = ty;
+
+      // head follows the mouse tightly, each blob follows the one before it
+      pts[0].x += (tx - pts[0].x) * 0.5;
+      pts[0].y += (ty - pts[0].y) * 0.5;
+      for (var i = 1; i < pts.length; i++) {
+        pts[i].x += (pts[i - 1].x - pts[i].x) * trail;
+        pts[i].y += (pts[i - 1].y - pts[i].y) * trail;
+      }
+
+      // fast = stretched along the direction of travel, and coloured
+      var stretch = 1 + Math.min(1.6, speed * 0.9);
+      var squash = 1 / Math.sqrt(stretch);
+      var down = cursor.classList.contains("is-down") ? 0.7 : 1;
+      blobs[0].style.transform = "translate(" + pts[0].x.toFixed(1) + "px," + pts[0].y.toFixed(1) + "px) rotate(" + angle.toFixed(3) + "rad) scale(" + (stretch * down).toFixed(3) + "," + (squash * down).toFixed(3) + ")";
+      for (var j = 1; j < blobs.length; j++) {
+        blobs[j].style.transform = "translate(" + pts[j].x.toFixed(1) + "px," + pts[j].y.toFixed(1) + "px)";
+      }
+      if (cursorCfg.colourWithSpeed !== false && canMixColour) {
+        // white when still; towards red, then cyan, the faster it moves
+        var k = Math.min(1, speed / 2.2);
+        var colour = k < 0.5
+          ? "color-mix(in srgb, var(--fx-a) " + Math.round(k * 2 * 100) + "%, var(--color-text))"
+          : "color-mix(in srgb, var(--fx-b) " + Math.round((k - 0.5) * 2 * 100) + "%, var(--fx-a))";
+        cursor.style.setProperty("--cursor-colour", colour);
+      }
       requestAnimationFrame(follow);
-    })();
+    })(performance.now());
   }
 
   /* ---- 4. animations ----------------------------------------------- */

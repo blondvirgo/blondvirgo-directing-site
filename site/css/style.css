@@ -111,10 +111,11 @@
   --ease-fx: cubic-bezier(0.65, 0, 0.35, 1);   /* smooth in and out, no overshoot */
   --dur-icon: 0.4s;
 
-  /* cursor */
-  --cursor-size: 10px;
-  --cursor-size-link: 40px;
-  --cursor-size-play: 64px;
+  /* cursor (liquid) */
+  --cursor-size: 18px;
+  --cursor-size-link: 48px;
+  --cursor-size-play: 72px;
+  --cursor-trail: 0.5;             /* how much the tail lags (0 tight – 1 loose) */
 
   /* focus */
   --focus-ring: 2px solid var(--color-text);
@@ -786,6 +787,60 @@ html.fx-static-burst .grain { opacity: var(--fx-static-opacity); }
   100% { transform: translateX(0); opacity: 1; filter: none; }
 }
 
+/* collage: each letter is cut out of your featured still and shuffles */
+.wordmark.fx-collage { text-shadow: none; }
+.wordmark.fx-collage .wordmark__letter {
+  background-image: var(--fill);
+  background-size: 700% auto;
+  background-position: var(--bx, 50%) var(--by, 50%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: fx-collage var(--fx-dur) var(--ease-fx) var(--d, 0s) both;
+}
+@keyframes fx-collage {
+  0%   { transform: translate(0, 0) rotate(0); opacity: 1; }
+  25%  { transform: translate(var(--dx), var(--dy)) rotate(var(--dr)); }
+  48%  { opacity: 1; }
+  52%  { opacity: 0; transform: translate(calc(var(--dx) * -1), calc(var(--dy) * -1)) rotate(calc(var(--dr) * -1)); }
+  60%  { opacity: 1; }
+  100% { transform: translate(0, 0) rotate(0); opacity: 1; }
+}
+
+/* flip: letters turn over in 3D, one after another */
+.wordmark { perspective: 700px; }
+.wordmark.fx-flip .wordmark__letter {
+  transform-origin: 50% 50%;
+  animation: fx-flip var(--fx-dur) var(--ease-fx) var(--d, 0s) both;
+  backface-visibility: hidden;
+}
+@keyframes fx-flip {
+  0%   { transform: rotateX(0); opacity: 1; }
+  45%  { transform: rotateX(90deg) translateZ(0.2em); opacity: 0.4; }
+  55%  { transform: rotateX(-90deg) translateZ(0.2em); opacity: 0.4; }
+  100% { transform: rotateX(0); opacity: 1; }
+}
+
+/* negative switch: the page tears white/black for a beat while flipping */
+html.fx-negative-switch .masthead,
+html.fx-negative-switch main,
+html.fx-negative-switch .footer { animation: fx-page 0.5s var(--ease-fx) both; }
+
+/* rare whole-page glitch: tears and a colour kick, pointer events untouched */
+html.fx-page .masthead,
+html.fx-page main,
+html.fx-page .footer { animation: fx-page 0.5s var(--ease-fx) both; }
+html.fx-page .grain { opacity: var(--fx-static-opacity); }
+@keyframes fx-page {
+  0%   { clip-path: inset(0); transform: none; filter: none; }
+  15%  { clip-path: inset(4% 0 72% 0); transform: translateX(0.6%); }
+  30%  { clip-path: inset(0); transform: translateX(-0.4%); filter: hue-rotate(60deg) contrast(1.25); }
+  45%  { clip-path: inset(58% 0 8% 0); transform: translateX(0.9%); filter: none; }
+  58%  { clip-path: inset(0); transform: none; opacity: 0.55; }
+  70%  { opacity: 1; }
+  100% { clip-path: inset(0); transform: none; filter: none; }
+}
+
 /* hold the title down: it keeps warping until you let go */
 .wordmark.is-held .wordmark__text { filter: url("#bv-distort"); }
 .wordmark { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
@@ -864,34 +919,47 @@ main.fx-open { animation: fx-open 0.45s var(--ease-fx) both; }
   .socials__link:focus-visible .icon { fill: var(--color-bg); }
 }
 
-/* custom cursor (desktop only): a dot that inverts whatever it crosses */
+/* liquid cursor (desktop only): a chain of blobs blurred into one body,
+   stretched along the direction of movement, coloured by speed, and
+   inverting whatever it crosses */
 .cursor {
   position: fixed;
   top: 0;
   left: 0;
   z-index: 200;
-  width: var(--cursor-size);
-  height: var(--cursor-size);
-  margin: calc(var(--cursor-size) / -2) 0 0 calc(var(--cursor-size) / -2);
-  border-radius: 50%;              /* the one round thing on the site: a dot */
-  background: var(--color-text);
-  mix-blend-mode: difference;
+  width: 0;
+  height: 0;
   pointer-events: none;
   opacity: 0;
-  transform: translate(-100px, -100px) scale(1);
-  transition: opacity var(--dur-fade) var(--ease), width var(--dur-icon) var(--ease-fx), height var(--dur-icon) var(--ease-fx), margin var(--dur-icon) var(--ease-fx);
+  mix-blend-mode: difference;
+  filter: url("#bv-goo");
+  transition: opacity var(--dur-fade) var(--ease);
 }
 html.has-cursor .cursor { opacity: 1; }
 html.has-cursor,
 html.has-cursor a,
 html.has-cursor button { cursor: none; }
-html.has-cursor .cursor.is-link {
-  --cursor-size: var(--cursor-size-link);
+
+.cursor__blob {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--cursor-size);
+  height: var(--cursor-size);
+  margin: calc(var(--cursor-size) / -2) 0 0 calc(var(--cursor-size) / -2);
+  border-radius: 50%;              /* the one round thing on the site */
+  background: var(--cursor-colour, var(--color-text));
+  will-change: transform;
 }
-html.has-cursor .cursor.is-play {
-  --cursor-size: var(--cursor-size-play);
-}
-html.has-cursor .cursor.is-down { transform: scale(0.7); }
+.cursor__blob:nth-child(2) { --cursor-size: 15px; }
+.cursor__blob:nth-child(3) { --cursor-size: 13px; }
+.cursor__blob:nth-child(4) { --cursor-size: 11px; }
+.cursor__blob:nth-child(5) { --cursor-size: 9px; }
+.cursor__blob:nth-child(6) { --cursor-size: 7px; }
+
+.cursor.is-link .cursor__blob:first-child { --cursor-size: var(--cursor-size-link); }
+.cursor.is-play .cursor__blob:first-child { --cursor-size: var(--cursor-size-play); }
+.cursor__blob:first-child { transition: width var(--dur-icon) var(--ease-fx), height var(--dur-icon) var(--ease-fx), margin var(--dur-icon) var(--ease-fx); }
 
 /* 11. MOTION ----------------------------------------------------------
    Nothing here hides content unless <html> has the class "js", which the
@@ -970,6 +1038,9 @@ html.has-cursor .cursor.is-down { transform: scale(0.7); }
   .wordmark.is-held .wordmark__text { filter: none; }
   .socials__link, .socials__link::before, .socials__link .icon { transition: none; }
   .cursor { display: none; }
+  html.fx-page .masthead, html.fx-page main, html.fx-page .footer,
+  html.fx-negative-switch .masthead, html.fx-negative-switch main, html.fx-negative-switch .footer { animation: none; }
+  .wordmark.fx-collage .wordmark__letter, .wordmark.fx-flip .wordmark__letter { animation: none; }
   html.has-cursor, html.has-cursor a, html.has-cursor button { cursor: auto; }
 }
 

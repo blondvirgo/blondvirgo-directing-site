@@ -40,18 +40,25 @@ const SETTINGS = {
   director: "ALEX RUSU",
   wordmark: "BLONDVIRGO",
 
-  // The big title switches between the wordmark and the director's name,
-  // using a different effect each time (breakdown, rgb split, vhs, flicker,
-  // negative, crush, static, slide). See the EFFECTS list in js/main.js.
+  // The big title switches between the wordmark and the director's name
+  // with a different effect each time: breakdown, rgb, vhs, flicker, crush,
+  // static, slide, collage (letters fill with your footage), flip (3D).
   titleSwap: {
-    onClick: true,        // clicking the title triggers an effect + swap
+    onClick: true,        // clicking the title: effect + swap + negative toggle
     everySeconds: 60,     // automatic swap; 0 = timer off
+    negativeOnClick: true // every click flips the whole site to negative and back
   },
   fxOnLoad: true,         // one short rgb-split hit when the page opens
   fxOnTiles: true,        // glitch when a tile is opened
   colourFringe: true,     // red/cyan fringes in the glitch effects. false = white only
-  negativeOnClick: true,  // every click on the title inverts the whole page for a beat
-  cursor: true,           // custom dot cursor on desktop (inverts whatever it crosses)
+  pageGlitch: {
+    enabled: true,        // rare glitch of the whole page (never blocks clicks)
+    averageSeconds: 75    // how often on average; it is random
+  },
+  cursor: {
+    enabled: true,        // liquid cursor on desktop
+    colourWithSpeed: true // shifts from white to red/cyan the faster you move
+  },
 };
 
 const PROJECTS = [

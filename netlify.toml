@@ -1,0 +1,28 @@
+# Netlify reads this file from the repo root.
+# Only the "site" folder is published. Everything else in the repo
+# (original stills, screenshots, notes) stays private to GitHub.
+
+[build]
+  publish = "site"
+
+# Long cache for files that never change without a new filename.
+[[headers]]
+  for = "/fonts/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/images/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
+
+[[headers]]
+  for = "/previews/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"

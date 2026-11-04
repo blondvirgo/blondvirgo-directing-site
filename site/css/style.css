@@ -1,0 +1,625 @@
+/* =====================================================================
+   BLONDVIRGO – style.css (the only stylesheet)
+
+   1. Design tokens   – every colour, font, size, spacing and timing is
+                        defined ONCE here and used by name below.
+   2. Fonts
+   3. Base
+   4. Masthead (wordmark + nav)
+   5. Hero
+   6. Social icons
+   7. Work grid + tiles
+   8. Footer
+   9. Player
+   10. Grain
+   11. Motion (Blur-in, Rise, hover) – only active once JS adds .js
+   12. Reduced motion
+   13. 404 page
+   ===================================================================== */
+
+/* 1. DESIGN TOKENS ---------------------------------------------------- */
+:root {
+  /* colour */
+  --color-bg: #000000;
+  --color-text: #ffffff;
+  --color-muted: #9a9a9a;
+
+  /* fonts */
+  --font-display: "Archivo", "Arial Black", Impact, sans-serif;
+  --font-body: "Poppins", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --wordmark-stretch: 125%;
+  --wordmark-weight: 900;
+  --wordmark-tracking: -0.02em;
+  /* wordmark width: ~62% of the page on desktop, ~90% on phones.
+     The number is the font size that makes "BLONDVIRGO" that wide. */
+  --wordmark-size: calc(1.08rem + 5.95vw);
+  --wordmark-size-footer: clamp(1.25rem, 3vw, 2.2rem);
+  --wordmark-glow: 0 0 18px rgba(255, 255, 255, 0.22);
+
+  --weight-nav: 600;
+  --weight-label: 600;
+  --weight-title: 600;
+  --weight-title-featured: 700;
+  --weight-bio: 500;
+
+  /* type sizes (fluid: phone → desktop) */
+  --size-nav: 15px;
+  --tracking-nav: 0.02em;
+  --size-kicker: clamp(1.5rem, 1rem + 1.6vw, 2.5rem);      /* 24px → 40px */
+  --size-name: clamp(3.25rem, 1rem + 7.2vw, 6.875rem);     /* 52px → 110px */
+  --size-bio: clamp(1.0625rem, 0.9rem + 0.6vw, 1.5rem);    /* 17px → 24px */
+  --size-tile-title: 17px;
+  --size-caption: 14px;
+  --size-copy: 13px;
+  --size-404: clamp(1.0625rem, 0.9rem + 0.6vw, 1.5rem);
+
+  /* spacing */
+  --margin-side: max(16px, 3.5vw);
+  --gap-nav: 32px;
+  --space-masthead-top: clamp(28px, 4vw, 56px);
+  --space-nav-top: clamp(14px, 1.6vw, 22px);
+  --space-hero-y: clamp(96px, 16vw, 220px);
+  --space-hero-gap: clamp(8px, 1.4vw, 18px);
+  --space-bio-top: clamp(24px, 3vw, 40px);
+  --space-icons-top: clamp(32px, 4vw, 56px);
+  --space-work-bottom: clamp(96px, 12vw, 180px);
+  --space-footer-y: clamp(48px, 6vw, 96px);
+  --space-footer-gap: 28px;
+  --bio-max-width: 1100px;
+
+  /* icons */
+  --icon-size: 34px;
+  --icon-gap: 36px;
+  --icon-hover-opacity: 0.6;
+
+  /* grid + tiles */
+  --grid-gap-x: 16px;
+  --grid-gap-y: 48px;
+  --tile-single-max: 600px;
+  --tile-title-gap: 14px;
+  --play-size: 44px;
+  --play-shadow: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.45));
+  --tile-zoom: 1.03;
+
+  /* player */
+  --player-chrome: 140px;          /* room for caption + breathing space */
+  --player-close-size: 44px;
+  --player-close-offset: clamp(12px, 2vw, 24px);
+
+  /* motion */
+  --dur-blur: 0.9s;
+  --dur-rise: 0.6s;
+  --stagger: 0.12s;
+  --dur-hover: 0.6s;
+  --dur-fade: 0.25s;
+  --rise-distance: 22px;
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);   /* calm, no overshoot */
+
+  /* grain */
+  --grain-opacity: 0.03;
+
+  /* focus */
+  --focus-ring: 2px solid var(--color-text);
+  --focus-offset: 4px;
+}
+
+/* 2. FONTS ------------------------------------------------------------ */
+@font-face {
+  font-family: "Archivo";
+  font-style: normal;
+  font-weight: 100 900;
+  font-stretch: 62% 125%;
+  font-display: swap;
+  src: url("/fonts/archivo-variable-latin.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Poppins";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/fonts/poppins-500-latin.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Poppins";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/poppins-600-latin.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Poppins";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/poppins-700-latin.woff2") format("woff2");
+}
+
+/* 3. BASE ------------------------------------------------------------- */
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html {
+  background: var(--color-bg);
+  color: var(--color-text);
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-weight: var(--weight-bio);
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+body.is-locked { overflow: hidden; }
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img,
+video,
+svg { display: block; max-width: 100%; }
+
+ul { list-style: none; margin: 0; padding: 0; }
+
+h1, h2, p { margin: 0; }
+
+:focus { outline: none; }
+:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* 4. MASTHEAD --------------------------------------------------------- */
+.masthead {
+  padding: var(--space-masthead-top) var(--margin-side) 0;
+  text-align: center;
+}
+
+.wordmark {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-stretch: var(--wordmark-stretch);
+  font-weight: var(--wordmark-weight);
+  font-size: var(--wordmark-size);
+  letter-spacing: var(--wordmark-tracking);
+  line-height: 1;
+  text-transform: uppercase;
+  text-shadow: var(--wordmark-glow);
+  white-space: nowrap;
+}
+
+.nav {
+  display: flex;
+  justify-content: center;
+  gap: var(--gap-nav);
+  margin-top: var(--space-nav-top);
+}
+
+.nav__link {
+  font-weight: var(--weight-nav);
+  font-size: var(--size-nav);
+  letter-spacing: var(--tracking-nav);
+  text-transform: uppercase;
+  line-height: 1;
+  padding: 6px 0;
+  transition: opacity var(--dur-fade) var(--ease);
+}
+
+.nav__link:hover { opacity: var(--icon-hover-opacity); }
+
+/* 5. HERO ------------------------------------------------------------- */
+.hero {
+  padding: var(--space-hero-y) var(--margin-side);
+  text-align: center;
+}
+
+.hero__kicker {
+  font-weight: var(--weight-label);
+  font-size: var(--size-kicker);
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.hero__name {
+  margin-top: var(--space-hero-gap);
+  font-weight: var(--weight-label);
+  font-size: var(--size-name);
+  text-transform: uppercase;
+  line-height: 0.95;
+  letter-spacing: -0.01em;
+}
+
+.hero__bio {
+  max-width: var(--bio-max-width);
+  margin: var(--space-bio-top) auto 0;
+  font-weight: var(--weight-bio);
+  font-size: var(--size-bio);
+  line-height: 1.4;
+}
+
+.hero__bio[hidden] { display: none; }
+
+.hero .socials { margin-top: var(--space-icons-top); }
+
+/* 6. SOCIAL ICONS ----------------------------------------------------- */
+.socials {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--icon-gap);
+}
+
+.socials__link {
+  display: block;
+  padding: 4px;
+  transition: opacity var(--dur-fade) var(--ease);
+}
+
+.socials__link:hover { opacity: var(--icon-hover-opacity); }
+
+.icon {
+  width: var(--icon-size);
+  height: var(--icon-size);
+  fill: var(--color-text);
+}
+
+/* 7. WORK GRID + TILES ------------------------------------------------ */
+.work {
+  padding: 0 var(--margin-side) var(--space-work-bottom);
+}
+
+.work__grid {
+  --cols: 3;
+  display: grid;
+  grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+  gap: var(--grid-gap-y) var(--grid-gap-x);
+  align-items: start;              /* tiles in a row line up at the top */
+}
+
+.work__grid[data-count="1"] {
+  grid-template-columns: minmax(0, var(--tile-single-max));
+  justify-content: center;
+}
+.work__grid[data-count="2"] { --cols: 2; }
+.work__grid[data-count="3"] { --cols: 3; }
+.work__grid[data-count="4"] { --cols: 2; }
+
+@media (max-width: 1024px) {
+  .work__grid:not([data-count="1"]) { --cols: 2; }
+}
+@media (max-width: 700px) {
+  .work__grid:not([data-count="1"]) { --cols: 1; }
+  .work__grid[data-count="1"] { grid-template-columns: minmax(0, 1fr); }
+}
+
+.work__noscript {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: var(--color-muted);
+}
+.work__noscript a { text-decoration: underline; }
+
+.tile { min-width: 0; }
+
+.tile__link {
+  display: block;
+}
+
+.tile__media {
+  --ar-w: 1;
+  --ar-h: 1;
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: var(--ar-w) / var(--ar-h);
+  overflow: hidden;                 /* hover zoom is clipped inside the tile */
+  background: var(--color-bg);
+}
+
+.tile__still,
+.tile__preview {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;              /* never crop the frame */
+}
+
+.tile__preview {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-hover) var(--ease);
+}
+
+/* Fallback tile when there is no still: black with the title + triangle */
+.tile__media--empty .tile__fallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  padding: 16px;
+  font-weight: var(--weight-title);
+  font-size: var(--size-tile-title);
+  text-transform: uppercase;
+  color: var(--color-text);
+}
+
+.tile__play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--play-size);
+  height: var(--play-size);
+  transform: translate(-50%, -50%);
+  fill: var(--color-text);
+  filter: var(--play-shadow);
+  pointer-events: none;
+  transition: opacity var(--dur-hover) var(--ease);
+}
+
+.tile__title {
+  display: block;
+  margin-top: var(--tile-title-gap);
+  font-weight: var(--weight-title);
+  font-size: var(--size-tile-title);
+  line-height: 1.3;
+  text-transform: uppercase;
+  text-align: left;
+}
+
+.tile--featured .tile__title { font-weight: var(--weight-title-featured); }
+
+/* 8. FOOTER ----------------------------------------------------------- */
+.footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-footer-gap);
+  padding: var(--space-footer-y) var(--margin-side);
+  text-align: center;
+}
+
+.footer__wordmark {
+  font-family: var(--font-display);
+  font-stretch: var(--wordmark-stretch);
+  font-weight: var(--wordmark-weight);
+  font-size: var(--wordmark-size-footer);
+  letter-spacing: var(--wordmark-tracking);
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.footer__copy {
+  color: var(--color-muted);
+  font-size: var(--size-copy);
+  font-weight: var(--weight-bio);
+}
+
+/* 9. PLAYER ----------------------------------------------------------- */
+.player {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg);
+  padding: var(--margin-side);
+  cursor: pointer;                  /* the black area closes the player */
+}
+
+.player[hidden] { display: none; }
+
+.player__stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+}
+
+.player__frame {
+  --ar-w: 1;
+  --ar-h: 1;
+  position: relative;
+  aspect-ratio: var(--ar-w) / var(--ar-h);
+  /* fit the screen height, but never wider than the screen */
+  height: min(
+    calc(100vh - var(--player-chrome)),
+    calc((100vw - 2 * var(--margin-side)) * var(--ar-h) / var(--ar-w))
+  );
+  height: min(
+    calc(100dvh - var(--player-chrome)),
+    calc((100vw - 2 * var(--margin-side)) * var(--ar-h) / var(--ar-w))
+  );
+  max-width: 100%;
+  background: var(--color-bg);
+  cursor: default;
+}
+
+.player__frame iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+}
+
+.player__caption {
+  width: 100%;
+  color: var(--color-muted);
+  font-size: var(--size-caption);
+  font-weight: var(--weight-bio);
+  text-transform: uppercase;
+  text-align: center;
+  cursor: default;
+}
+
+.player__close {
+  position: absolute;
+  top: var(--player-close-offset);
+  right: var(--player-close-offset);
+  width: var(--player-close-size);
+  height: var(--player-close-size);
+  padding: 10px;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-text);
+  cursor: pointer;
+  transition: opacity var(--dur-fade) var(--ease);
+}
+.player__close svg { width: 100%; height: 100%; fill: currentColor; }
+
+/* invisible stops that keep keyboard focus inside the player */
+.player__sentinel {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+}
+.player__close:hover { opacity: var(--icon-hover-opacity); }
+
+/* 10. GRAIN ----------------------------------------------------------- */
+.grain {
+  position: fixed;
+  inset: -100%;                      /* 3x the screen so it can drift */
+  z-index: 90;
+  pointer-events: none;
+  opacity: var(--grain-opacity);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 260px 260px;
+  will-change: transform;
+}
+
+.js .grain { animation: grain 0.9s steps(1) infinite; }
+
+html[data-grain="off"] .grain { display: none; }
+
+@keyframes grain {
+  0%   { transform: translate(0, 0); }
+  12%  { transform: translate(-3%, -6%); }
+  25%  { transform: translate(5%, 2%); }
+  37%  { transform: translate(-7%, 8%); }
+  50%  { transform: translate(8%, -4%); }
+  62%  { transform: translate(-2%, 10%); }
+  75%  { transform: translate(6%, 6%); }
+  87%  { transform: translate(-9%, -2%); }
+  100% { transform: translate(0, 0); }
+}
+
+/* 11. MOTION ----------------------------------------------------------
+   Nothing here hides content unless <html> has the class "js", which the
+   script adds. If JavaScript fails, everything stays visible.          */
+
+/* Blur-in: blurry → sharp */
+.js .blur-in {
+  opacity: 0;
+  filter: blur(14px);
+  transition: opacity var(--dur-blur) var(--ease), filter var(--dur-blur) var(--ease);
+}
+.js .blur-in.is-in {
+  opacity: 1;
+  filter: blur(0);
+}
+
+/* Rise: fade up, staggered with --i */
+.js .rise {
+  opacity: 0;
+  transform: translateY(var(--rise-distance));
+  transition:
+    opacity var(--dur-rise) var(--ease) calc(var(--i, 0) * var(--stagger)),
+    transform var(--dur-rise) var(--ease) calc(var(--i, 0) * var(--stagger));
+}
+.js .rise.is-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* Desktop hover: gentle zoom (no preview) or crossfade to preview */
+.tile__still {
+  transition: transform var(--dur-hover) var(--ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  .tile:not(.tile--has-preview) .tile__link:hover .tile__still,
+  .tile:not(.tile--has-preview) .tile__link:focus-visible .tile__still {
+    transform: scale(var(--tile-zoom));
+  }
+}
+.tile.is-previewing .tile__preview { opacity: 1; }
+.tile.is-previewing .tile__play { opacity: 0; }
+
+/* 12. REDUCED MOTION -------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .js .blur-in,
+  .js .rise {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    transition: none;
+  }
+  .grain { display: none; }
+  .tile__still,
+  .tile__preview,
+  .tile__play,
+  .nav__link,
+  .socials__link,
+  .player__close { transition: none; }
+  .tile .tile__link:hover .tile__still { transform: none; }
+  .tile__preview { display: none; }
+}
+
+/* 13. 404 PAGE -------------------------------------------------------- */
+.notfound {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  padding: var(--margin-side);
+  text-align: center;
+}
+
+.notfound__line {
+  font-size: var(--size-404);
+  font-weight: var(--weight-bio);
+}
+
+.notfound__link {
+  font-weight: var(--weight-nav);
+  font-size: var(--size-nav);
+  letter-spacing: var(--tracking-nav);
+  text-transform: uppercase;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  transition: opacity var(--dur-fade) var(--ease);
+}
+.notfound__link:hover { opacity: var(--icon-hover-opacity); }

@@ -106,8 +106,15 @@
   /* glitch effects (fx) */
   --fx-a: #ff0033;                 /* red fringe   (white when colourFringe is off) */
   --fx-b: #00e5ff;                 /* cyan fringe  (white when colourFringe is off) */
-  --fx-dur: 0.9s;
-  --fx-static-opacity: 0.22;
+  --fx-dur: 1.2s;
+  --fx-static-opacity: 0.26;
+  --ease-fx: cubic-bezier(0.65, 0, 0.35, 1);   /* smooth in and out, no overshoot */
+  --dur-icon: 0.4s;
+
+  /* cursor */
+  --cursor-size: 10px;
+  --cursor-size-link: 40px;
+  --cursor-size-play: 64px;
 
   /* focus */
   --focus-ring: 2px solid var(--color-text);
@@ -445,6 +452,12 @@ html[data-fringe="off"] .wordmark__ghost { color: var(--color-text); }
 }
 
 .footer__wordmark {
+  margin: 0;
+  padding: 4px 8px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
   font-family: var(--font-display);
   font-stretch: var(--wordmark-stretch);
   font-weight: var(--wordmark-weight);
@@ -614,171 +627,271 @@ html[data-grain="off"] .grain { display: none; }
 html[data-scanlines="off"] .scanlines { display: none; }
 
 /* 10b. FX LIBRARY --------------------------------------------------------
-   Each effect is a class the script puts on the wordmark for --fx-dur,
-   swapping the word half way through. Names match the EFFECTS list in
-   main.js: breakdown, rgb, vhs, flicker, negative, crush, static, slide.  */
+   Each effect is a class the script puts on the wordmark for its duration,
+   swapping the word part-way through. Names match the EFFECTS list in
+   main.js: breakdown, rgb, vhs, flicker, negative, crush, static, slide.
+   Movement is eased (smooth); only the slice "tears" are stepped, on
+   purpose, because a tear that eases looks like a wobble.              */
 
-/* rgb: red/cyan copies tear sideways */
+.wordmark__text,
+.wordmark__ghost { will-change: transform, opacity, filter; }
+
+/* the SVG displacement filter (defined in index.html) warps the word */
+.wordmark.is-distorting .wordmark__text { filter: url("#bv-distort"); }
+
+/* rgb: red/cyan copies drift apart and snap back */
 .wordmark.fx-rgb .wordmark__ghost { display: block; }
-.wordmark.fx-rgb .wordmark__ghost--a { animation: fx-rgb-a var(--fx-dur) steps(1) both; }
-.wordmark.fx-rgb .wordmark__ghost--b { animation: fx-rgb-b var(--fx-dur) steps(1) both; }
-.wordmark.fx-rgb .wordmark__text { animation: fx-rgb-text var(--fx-dur) steps(1) both; }
-@keyframes fx-rgb-a {
-  0%   { transform: translate(0, 0); clip-path: inset(0); }
-  10%  { transform: translate(-0.06em, 0.01em); clip-path: inset(10% 0 55% 0); }
-  25%  { transform: translate(0.05em, -0.02em); clip-path: inset(40% 0 20% 0); }
-  40%  { transform: translate(-0.08em, 0); clip-path: inset(0 0 70% 0); }
-  55%  { transform: translate(0.04em, 0.03em); clip-path: inset(60% 0 5% 0); }
-  70%  { transform: translate(-0.03em, -0.01em); clip-path: inset(25% 0 45% 0); }
-  85%  { transform: translate(0.02em, 0); clip-path: inset(0); }
-  100% { transform: translate(0, 0); clip-path: inset(0); }
+.wordmark.fx-rgb .wordmark__ghost--a {
+  animation: fx-rgb-a-move var(--fx-dur) var(--ease-fx) both,
+             fx-rgb-a-clip var(--fx-dur) steps(1) both;
 }
-@keyframes fx-rgb-b {
-  0%   { transform: translate(0, 0); clip-path: inset(0); }
-  10%  { transform: translate(0.06em, -0.01em); clip-path: inset(50% 0 10% 0); }
-  25%  { transform: translate(-0.05em, 0.02em); clip-path: inset(15% 0 60% 0); }
-  40%  { transform: translate(0.08em, 0); clip-path: inset(65% 0 0 0); }
-  55%  { transform: translate(-0.04em, -0.03em); clip-path: inset(5% 0 75% 0); }
-  70%  { transform: translate(0.03em, 0.01em); clip-path: inset(40% 0 30% 0); }
-  85%  { transform: translate(-0.02em, 0); clip-path: inset(0); }
-  100% { transform: translate(0, 0); clip-path: inset(0); }
+.wordmark.fx-rgb .wordmark__ghost--b {
+  animation: fx-rgb-b-move var(--fx-dur) var(--ease-fx) both,
+             fx-rgb-b-clip var(--fx-dur) steps(1) both;
+}
+.wordmark.fx-rgb .wordmark__text { animation: fx-rgb-text var(--fx-dur) var(--ease-fx) both; }
+@keyframes fx-rgb-a-move {
+  0%   { transform: translate(0, 0); }
+  20%  { transform: translate(-0.05em, 0.01em); }
+  45%  { transform: translate(0.04em, -0.02em); }
+  60%  { transform: translate(-0.09em, 0.01em); }
+  80%  { transform: translate(0.02em, 0); }
+  100% { transform: translate(0, 0); }
+}
+@keyframes fx-rgb-b-move {
+  0%   { transform: translate(0, 0); }
+  20%  { transform: translate(0.05em, -0.01em); }
+  45%  { transform: translate(-0.04em, 0.02em); }
+  60%  { transform: translate(0.09em, -0.01em); }
+  80%  { transform: translate(-0.02em, 0); }
+  100% { transform: translate(0, 0); }
+}
+@keyframes fx-rgb-a-clip {
+  0%, 100% { clip-path: inset(0); }
+  25% { clip-path: inset(12% 0 50% 0); }
+  40% { clip-path: inset(0); }
+  55% { clip-path: inset(55% 0 10% 0); }
+  70% { clip-path: inset(0); }
+}
+@keyframes fx-rgb-b-clip {
+  0%, 100% { clip-path: inset(0); }
+  25% { clip-path: inset(50% 0 12% 0); }
+  40% { clip-path: inset(0); }
+  55% { clip-path: inset(10% 0 55% 0); }
+  70% { clip-path: inset(0); }
 }
 @keyframes fx-rgb-text {
   0%, 100% { opacity: 1; transform: none; }
-  12% { opacity: 0.9; transform: translateX(0.01em); }
-  30% { opacity: 0.6; transform: translateX(-0.015em); }
-  48% { opacity: 0.2; }
-  52% { opacity: 0.2; }
-  64% { opacity: 0.8; transform: translateX(0.01em); }
+  30% { opacity: 0.7; transform: translateX(-0.01em); }
+  50% { opacity: 0.15; }
+  70% { opacity: 0.85; transform: translateX(0.01em); }
 }
 
-/* vhs: horizontal tracking bands slide the word apart */
-.wordmark.fx-vhs .wordmark__ghost { display: block; opacity: 0.6; }
-.wordmark.fx-vhs .wordmark__ghost--a { animation: fx-vhs-a var(--fx-dur) steps(1) both; }
-.wordmark.fx-vhs .wordmark__ghost--b { animation: fx-vhs-b var(--fx-dur) steps(1) both; }
-.wordmark.fx-vhs .wordmark__text { animation: fx-vhs-text var(--fx-dur) steps(1) both; }
+/* vhs: tracking bands slide the word apart, with a soft roll */
+.wordmark.fx-vhs .wordmark__ghost { display: block; opacity: 0.55; }
+.wordmark.fx-vhs .wordmark__ghost--a {
+  animation: fx-vhs-a-move var(--fx-dur) var(--ease-fx) both,
+             fx-vhs-clip var(--fx-dur) steps(1) both;
+}
+.wordmark.fx-vhs .wordmark__ghost--b {
+  animation: fx-vhs-b-move var(--fx-dur) var(--ease-fx) both,
+             fx-vhs-clip var(--fx-dur) steps(1) both;
+}
+.wordmark.fx-vhs .wordmark__text {
+  animation: fx-vhs-text var(--fx-dur) var(--ease-fx) both,
+             fx-vhs-clip var(--fx-dur) steps(1) both;
+}
 @keyframes fx-vhs-text {
-  0%   { clip-path: inset(0); transform: none; filter: none; }
-  12%  { clip-path: inset(0 0 60% 0); transform: translateX(0.12em); filter: blur(1px); }
-  24%  { clip-path: inset(30% 0 30% 0); transform: translateX(-0.18em); }
-  36%  { clip-path: inset(55% 0 0 0); transform: translateX(0.2em); filter: blur(2px); }
-  48%  { clip-path: inset(0); transform: translateX(0); opacity: 0.1; }
-  60%  { clip-path: inset(20% 0 50% 0); transform: translateX(-0.1em); opacity: 1; }
-  72%  { clip-path: inset(70% 0 0 0); transform: translateX(0.08em); }
-  84%  { clip-path: inset(0 0 40% 0); transform: translateX(-0.04em); filter: blur(1px); }
-  100% { clip-path: inset(0); transform: none; filter: none; }
+  0%   { transform: none; filter: none; opacity: 1; }
+  20%  { transform: translate(0.08em, 0.01em); filter: blur(1px); }
+  40%  { transform: translate(-0.12em, -0.01em); filter: blur(2px); }
+  50%  { transform: translate(0, 0.02em); opacity: 0.1; filter: blur(4px); }
+  65%  { transform: translate(0.06em, 0); opacity: 1; filter: blur(1px); }
+  85%  { transform: translate(-0.02em, 0); filter: none; }
+  100% { transform: none; }
 }
-@keyframes fx-vhs-a {
-  0%, 100% { transform: translate(0, 0); clip-path: inset(0); }
-  12%  { transform: translate(-0.15em, 0); clip-path: inset(0 0 60% 0); }
-  36%  { transform: translate(-0.25em, 0.02em); clip-path: inset(55% 0 0 0); }
-  60%  { transform: translate(0.12em, 0); clip-path: inset(20% 0 50% 0); }
-  84%  { transform: translate(0.05em, 0); clip-path: inset(0 0 40% 0); }
+@keyframes fx-vhs-a-move {
+  0%, 100% { transform: translate(0, 0); }
+  20%  { transform: translate(-0.12em, 0.01em); }
+  40%  { transform: translate(-0.22em, 0.02em); }
+  65%  { transform: translate(0.1em, 0); }
+  85%  { transform: translate(0.03em, 0); }
 }
-@keyframes fx-vhs-b {
-  0%, 100% { transform: translate(0, 0); clip-path: inset(0); }
-  12%  { transform: translate(0.15em, 0); clip-path: inset(0 0 60% 0); }
-  36%  { transform: translate(0.25em, -0.02em); clip-path: inset(55% 0 0 0); }
-  60%  { transform: translate(-0.12em, 0); clip-path: inset(20% 0 50% 0); }
-  84%  { transform: translate(-0.05em, 0); clip-path: inset(0 0 40% 0); }
+@keyframes fx-vhs-b-move {
+  0%, 100% { transform: translate(0, 0); }
+  20%  { transform: translate(0.12em, -0.01em); }
+  40%  { transform: translate(0.22em, -0.02em); }
+  65%  { transform: translate(-0.1em, 0); }
+  85%  { transform: translate(-0.03em, 0); }
+}
+@keyframes fx-vhs-clip {
+  0%, 100% { clip-path: inset(0); }
+  15% { clip-path: inset(0 0 62% 0); }
+  30% { clip-path: inset(28% 0 30% 0); }
+  45% { clip-path: inset(58% 0 0 0); }
+  55% { clip-path: inset(0); }
+  70% { clip-path: inset(18% 0 52% 0); }
+  85% { clip-path: inset(0 0 44% 0); }
 }
 
 /* flicker: a dying neon sign (never more than 3 flashes a second) */
-.wordmark.fx-flicker .wordmark__text { animation: fx-flicker var(--fx-dur) steps(1) both; }
+.wordmark.fx-flicker .wordmark__text { animation: fx-flicker var(--fx-dur) ease-in-out both; }
 @keyframes fx-flicker {
   0%, 100% { opacity: 1; }
-  15% { opacity: 0.15; }
-  25% { opacity: 1; }
-  45% { opacity: 0.05; }
-  55% { opacity: 0.05; }
-  62% { opacity: 1; }
-  80% { opacity: 0.3; }
+  12% { opacity: 0.2; }
+  22% { opacity: 1; }
+  42% { opacity: 0.05; }
+  56% { opacity: 0.05; }
+  64% { opacity: 1; }
+  80% { opacity: 0.35; }
   90% { opacity: 1; }
 }
 
-/* negative: the whole page inverts for one frame-burst */
-html.fx-negative { filter: invert(1); }
+/* negative: the whole page inverts. Used on its own as an effect, as the
+   "hit" at the swap moment of every click, and as a sticky mode toggled
+   from the footer wordmark. */
+html.fx-negative,
+html.is-negative { filter: invert(1); }
+html.fx-negative .grain,
+html.is-negative .grain { opacity: calc(var(--grain-opacity) * 2); }
 
 /* crush: letters squash flat and spring back (per-letter delay from --d) */
-.wordmark.fx-crush .wordmark__letter { animation: fx-crush var(--fx-dur) var(--ease) var(--d, 0s) both; }
+.wordmark.fx-crush .wordmark__letter { animation: fx-crush var(--fx-dur) var(--ease-fx) var(--d, 0s) both; }
 @keyframes fx-crush {
-  0%   { transform: scaleY(1); }
-  30%  { transform: scaleY(0.04) translateY(0.4em); opacity: 1; }
+  0%   { transform: scaleY(1); opacity: 1; }
+  35%  { transform: scaleY(0.04) translateY(0.4em); opacity: 1; }
   50%  { transform: scaleY(0.04) translateY(0.4em); opacity: 0; }
   52%  { transform: scaleY(0.04) translateY(-0.4em); opacity: 0; }
-  70%  { transform: scaleY(0.04) translateY(-0.4em); opacity: 1; }
-  100% { transform: scaleY(1); }
+  65%  { transform: scaleY(0.04) translateY(-0.4em); opacity: 1; }
+  100% { transform: scaleY(1); opacity: 1; }
 }
 
-/* static: jitter + blur while the grain spikes */
-.wordmark.fx-static .wordmark__text { animation: fx-static var(--fx-dur) steps(1) both; }
+/* static: the word is warped by the displacement filter (driven by JS)
+   while the grain spikes; opacity breathes */
+.wordmark.fx-static .wordmark__text { animation: fx-static var(--fx-dur) ease-in-out both; }
 html.fx-static-burst .grain { opacity: var(--fx-static-opacity); }
 @keyframes fx-static {
-  0%, 100% { transform: none; filter: none; }
-  10% { transform: translate(0.02em, -0.01em); filter: blur(1px); }
-  20% { transform: translate(-0.03em, 0.02em); }
-  30% { transform: translate(0.01em, 0.03em); filter: blur(3px); }
-  40% { transform: translate(-0.02em, -0.02em); opacity: 0.5; }
-  50% { transform: translate(0.03em, 0.01em); opacity: 0.2; filter: blur(6px); }
-  60% { transform: translate(-0.01em, 0.02em); opacity: 0.8; filter: blur(2px); }
-  70% { transform: translate(0.02em, -0.03em); }
-  80% { transform: translate(-0.02em, 0.01em); filter: blur(1px); }
-  90% { transform: translate(0.01em, 0); }
+  0%, 100% { opacity: 1; filter: none; }
+  30% { opacity: 0.75; }
+  50% { opacity: 0.25; }
+  70% { opacity: 0.8; }
 }
 
 /* slide: letters slide out one way and the new word slides in */
-.wordmark.fx-slide .wordmark__letter { animation: fx-slide var(--fx-dur) var(--ease) var(--d, 0s) both; }
+.wordmark.fx-slide .wordmark__letter { animation: fx-slide var(--fx-dur) var(--ease-fx) var(--d, 0s) both; }
 @keyframes fx-slide {
-  0%   { transform: translateX(0); opacity: 1; }
+  0%   { transform: translateX(0); opacity: 1; filter: none; }
   40%  { transform: translateX(-0.6em); opacity: 0; filter: blur(4px); }
   50%  { transform: translateX(0.6em); opacity: 0; filter: blur(4px); }
   100% { transform: translateX(0); opacity: 1; filter: none; }
 }
 
+/* hold the title down: it keeps warping until you let go */
+.wordmark.is-held .wordmark__text { filter: url("#bv-distort"); }
+.wordmark { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+
 /* small text glitch for nav links, tile titles, footer wordmark */
-.glitch-text {
-  animation: fx-text-shadow 0.45s steps(1) both;
-}
+.glitch-text { animation: fx-text-shadow 0.5s var(--ease-fx) both; }
 @keyframes fx-text-shadow {
   0%, 100% { text-shadow: none; transform: none; }
-  15% { text-shadow: -0.08em 0 var(--fx-a), 0.08em 0 var(--fx-b); transform: translateX(0.02em); }
-  35% { text-shadow: 0.06em 0 var(--fx-a), -0.06em 0 var(--fx-b); transform: translateX(-0.02em); }
-  55% { text-shadow: -0.04em 0 var(--fx-a), 0.04em 0 var(--fx-b); }
-  75% { text-shadow: 0.02em 0 var(--fx-a), -0.02em 0 var(--fx-b); transform: translateX(0.01em); }
+  20% { text-shadow: -0.07em 0 var(--fx-a), 0.07em 0 var(--fx-b); transform: translateX(0.02em); }
+  45% { text-shadow: 0.05em 0 var(--fx-a), -0.05em 0 var(--fx-b); transform: translateX(-0.02em); }
+  70% { text-shadow: -0.02em 0 var(--fx-a), 0.02em 0 var(--fx-b); transform: translateX(0.01em); }
 }
 html[data-fringe="off"] .glitch-text { animation-name: fx-text-shadow-white; }
 @keyframes fx-text-shadow-white {
-  0%, 100% { text-shadow: none; transform: none; }
-  15% { text-shadow: -0.08em 0 var(--color-text); transform: translateX(0.02em); opacity: 0.7; }
-  35% { text-shadow: 0.06em 0 var(--color-text); transform: translateX(-0.02em); }
-  55% { text-shadow: -0.04em 0 var(--color-text); opacity: 0.8; }
-  75% { transform: translateX(0.01em); }
+  0%, 100% { text-shadow: none; transform: none; opacity: 1; }
+  20% { text-shadow: -0.07em 0 var(--color-text); transform: translateX(0.02em); opacity: 0.7; }
+  45% { text-shadow: 0.05em 0 var(--color-text); transform: translateX(-0.02em); }
+  70% { opacity: 0.85; transform: translateX(0.01em); }
 }
 
-/* tile hover: title glitches, still gets a quick slice tear */
+/* tile hover: title glitches, still gets a quick slice tear then zooms */
 @media (hover: hover) and (pointer: fine) {
-  .tile__link:hover .tile__title { animation: fx-text-shadow 0.45s steps(1) both; }
+  .tile__link:hover .tile__title { animation: fx-text-shadow 0.5s var(--ease-fx) both; }
   html[data-fringe="off"] .tile__link:hover .tile__title { animation-name: fx-text-shadow-white; }
-  .tile__link:hover .tile__still { animation: fx-tile-tear 0.5s steps(1) both; }
+  .tile__link:hover .tile__still { animation: fx-tile-tear 0.55s steps(1) both; }
 }
 @keyframes fx-tile-tear {
   0%, 100% { clip-path: inset(0); }
-  10% { clip-path: inset(20% 0 60% 0); transform: translateX(-2%) scale(var(--tile-zoom)); }
-  20% { clip-path: inset(0); }
-  30% { clip-path: inset(55% 0 20% 0); transform: translateX(2%) scale(var(--tile-zoom)); }
-  40% { clip-path: inset(0); }
+  12% { clip-path: inset(20% 0 60% 0); transform: translateX(-2%) scale(var(--tile-zoom)); }
+  24% { clip-path: inset(0); }
+  36% { clip-path: inset(55% 0 20% 0); transform: translateX(2%) scale(var(--tile-zoom)); }
+  48% { clip-path: inset(0); }
 }
 
-/* opening the player: the page tears for a moment */
-main.fx-open { animation: fx-open 0.4s steps(1) both; }
+/* opening the player: the page tears, inverts for a beat, then fades */
+main.fx-open { animation: fx-open 0.45s var(--ease-fx) both; }
 @keyframes fx-open {
-  0%   { clip-path: inset(0); transform: none; }
-  15%  { clip-path: inset(10% 0 50% 0); transform: translateX(1.5%); }
-  30%  { clip-path: inset(0); transform: translateX(-1%); filter: invert(1); }
-  45%  { clip-path: inset(60% 0 10% 0); transform: translateX(2%); filter: none; }
-  60%  { clip-path: inset(0); opacity: 0.4; }
+  0%   { clip-path: inset(0); transform: none; opacity: 1; }
+  20%  { clip-path: inset(10% 0 50% 0); transform: translateX(1%); }
+  35%  { clip-path: inset(0); transform: translateX(-0.6%); filter: invert(1); }
+  50%  { clip-path: inset(60% 0 10% 0); transform: translateX(1.2%); filter: none; }
+  65%  { clip-path: inset(0); opacity: 0.35; }
   100% { clip-path: inset(0); opacity: 1; transform: none; }
 }
+
+/* social icons: lift, grow, and fill with a white square (icon turns black) */
+.socials__link {
+  position: relative;
+  transform: translateY(0) scale(1);
+  transition: transform var(--dur-icon) var(--ease-fx), opacity var(--dur-fade) var(--ease);
+}
+.socials__link::before {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  background: var(--color-text);
+  transform: scaleY(0);
+  transform-origin: bottom;
+  transition: transform var(--dur-icon) var(--ease-fx);
+  z-index: 0;
+}
+.socials__link .icon {
+  position: relative;
+  z-index: 1;
+  transition: fill var(--dur-icon) var(--ease-fx);
+}
+@media (hover: hover) and (pointer: fine) {
+  .socials__link:hover,
+  .socials__link:focus-visible {
+    opacity: 1;
+    transform: translateY(-5px) scale(1.12);
+  }
+  .socials__link:hover::before,
+  .socials__link:focus-visible::before { transform: scaleY(1); }
+  .socials__link:hover .icon,
+  .socials__link:focus-visible .icon { fill: var(--color-bg); }
+}
+
+/* custom cursor (desktop only): a dot that inverts whatever it crosses */
+.cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 200;
+  width: var(--cursor-size);
+  height: var(--cursor-size);
+  margin: calc(var(--cursor-size) / -2) 0 0 calc(var(--cursor-size) / -2);
+  border-radius: 50%;              /* the one round thing on the site: a dot */
+  background: var(--color-text);
+  mix-blend-mode: difference;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-100px, -100px) scale(1);
+  transition: opacity var(--dur-fade) var(--ease), width var(--dur-icon) var(--ease-fx), height var(--dur-icon) var(--ease-fx), margin var(--dur-icon) var(--ease-fx);
+}
+html.has-cursor .cursor { opacity: 1; }
+html.has-cursor,
+html.has-cursor a,
+html.has-cursor button { cursor: none; }
+html.has-cursor .cursor.is-link {
+  --cursor-size: var(--cursor-size-link);
+}
+html.has-cursor .cursor.is-play {
+  --cursor-size: var(--cursor-size-play);
+}
+html.has-cursor .cursor.is-down { transform: scale(0.7); }
 
 /* 11. MOTION ----------------------------------------------------------
    Nothing here hides content unless <html> has the class "js", which the
@@ -853,6 +966,11 @@ main.fx-open { animation: fx-open 0.4s steps(1) both; }
   main.fx-open { animation: none; }
   html.fx-negative { filter: none; }
   html.fx-static-burst .grain { display: none; }
+  .wordmark.is-distorting .wordmark__text,
+  .wordmark.is-held .wordmark__text { filter: none; }
+  .socials__link, .socials__link::before, .socials__link .icon { transition: none; }
+  .cursor { display: none; }
+  html.has-cursor, html.has-cursor a, html.has-cursor button { cursor: auto; }
 }
 
 /* 13. 404 PAGE -------------------------------------------------------- */

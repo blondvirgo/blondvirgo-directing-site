@@ -50,6 +50,8 @@ const SETTINGS = {
   fxOnLoad: true,         // one short rgb-split hit when the page opens
   fxOnTiles: true,        // glitch when a tile is opened
   colourFringe: true,     // red/cyan fringes in the glitch effects. false = white only
+  negativeOnClick: true,  // every click on the title inverts the whole page for a beat
+  cursor: true,           // custom dot cursor on desktop (inverts whatever it crosses)
 };
 
 const PROJECTS = [

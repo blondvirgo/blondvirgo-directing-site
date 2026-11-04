@@ -183,16 +183,43 @@
      Every effect: name, how long it runs, and when (0–1) the word swaps.
      "letters" effects animate each letter; the others animate the whole
      word plus the two coloured ghost copies.                          */
+  var FX_DUR = 1200;                                   // matches --fx-dur in the stylesheet
   var EFFECTS = [
-    { name: "breakdown", dur: 1900, swapAt: 0.5, letters: true },
-    { name: "rgb",       dur: 900,  swapAt: 0.5 },
-    { name: "vhs",       dur: 900,  swapAt: 0.48 },
-    { name: "flicker",   dur: 900,  swapAt: 0.5 },
-    { name: "negative",  dur: 700,  swapAt: 0.5 },
-    { name: "crush",     dur: 1100, swapAt: 0.51, letters: true },
-    { name: "static",    dur: 900,  swapAt: 0.5 },
-    { name: "slide",     dur: 1100, swapAt: 0.45, letters: true }
+    { name: "breakdown", dur: 1900,   swapAt: 0.5,  letters: true },
+    { name: "rgb",       dur: FX_DUR, swapAt: 0.5,  distort: 18 },
+    { name: "vhs",       dur: FX_DUR, swapAt: 0.5,  distort: 30 },
+    { name: "flicker",   dur: FX_DUR, swapAt: 0.49 },
+    { name: "negative",  dur: 900,    swapAt: 0.5,  hold: 450 },
+    { name: "crush",     dur: FX_DUR, swapAt: 0.51, letters: true },
+    { name: "static",    dur: FX_DUR, swapAt: 0.5,  distort: 60 },
+    { name: "slide",     dur: FX_DUR, swapAt: 0.45, letters: true }
   ];
+
+  /* distortion: warps the word through the SVG filter in index.html.
+     strength rises to "peak" and falls back over "dur" milliseconds.  */
+  var distortMap = doc.getElementById("bv-distort-map");
+  var distortNoise = doc.getElementById("bv-distort-noise");
+  var distortFrame = null;
+  function distort(peak, dur) {
+    if (!distortMap || !wordmark || reduceMotion) return;
+    cancelAnimationFrame(distortFrame);
+    var t0 = performance.now();
+    wordmark.classList.add("is-distorting");
+    (function tick(now) {
+      var t = Math.min(1, (now - t0) / dur);
+      var env = Math.sin(t * Math.PI);                        // 0 → 1 → 0
+      distortMap.setAttribute("scale", (peak * env).toFixed(1));
+      distortNoise.setAttribute("seed", String(Math.floor(now / 70) % 50));
+      if (t < 1) distortFrame = requestAnimationFrame(tick);
+      else { distortMap.setAttribute("scale", "0"); wordmark.classList.remove("is-distorting"); }
+    })(t0);
+  }
+
+  // short full-page inversion ("negative hit")
+  function negativeHit(ms) {
+    root.classList.add("fx-negative");
+    setTimeout(function () { root.classList.remove("fx-negative"); }, ms);
+  }
 
   var wordmark = doc.getElementById("wordmark");
   var textLayer = wordmark && wordmark.querySelector(".wordmark__text");
@@ -227,15 +254,21 @@
     return fx || pool[Math.floor(Math.random() * pool.length)];
   }
 
-  // run one effect; swapText=true switches the word half way through
-  function runFx(wanted, swapText) {
-    if (!wordmark || busy) return;
+  // run one effect; swapText=true switches the word part-way through;
+  // fromClick=true adds the full-page negative hit at the swap moment
+  var queued = null;
+  function runFx(wanted, swapText, fromClick) {
+    if (!wordmark) return;
+    if (busy) { queued = [wanted, swapText, fromClick]; return; }   // play it after the current one
     busy = true;
     var fx = reduceMotion ? { name: "fade", dur: 1200, swapAt: 0.5, letters: true } : pickEffect(wanted);
     lastFx = fx.name;
     var next = swapText ? (nameIndex === 0 ? 1 : 0) : nameIndex;
+    var hit = fromClick && settings.negativeOnClick !== false && !reduceMotion && fx.name !== "negative";
 
     letters().forEach(scatter);
+    if (fx.distort) distort(fx.distort, fx.dur);
+    if (fx.name === "static") root.classList.add("fx-static-burst");
 
     if (fx.name === "breakdown" || fx.name === "fade") {
       wordmark.classList.add("is-breaking");
@@ -245,38 +278,45 @@
         letters().forEach(scatter);
         void wordmark.offsetWidth;
         wordmark.classList.remove("is-breaking");
+        if (hit) negativeHit(220);
       }, fx.dur * fx.swapAt);
-      setTimeout(function () { busy = false; }, fx.dur);
+      setTimeout(function () { busy = false; drain(); }, fx.dur);
       return;
     }
 
     wordmark.classList.add("fx-" + fx.name);
     if (fx.name === "negative") root.classList.add("fx-negative");
-    if (fx.name === "static") root.classList.add("fx-static-burst");
 
     setTimeout(function () {
       nameIndex = next;
       if (fx.letters) {
-        // keep each letter's animation running: only replace the characters
         var chars = names[nameIndex].split("");
         var old = letters();
-        if (old.length === chars.length) {
-          old.forEach(function (l, i) { l.textContent = chars[i]; });
-        } else {
-          setWord(names[nameIndex]);
-        }
+        if (old.length === chars.length) old.forEach(function (l, i) { l.textContent = chars[i]; });
+        else setWord(names[nameIndex]);
         ghosts.forEach(function (g) { g.textContent = names[nameIndex]; });
       } else {
         setWord(names[nameIndex]);
       }
-      if (fx.name === "negative") root.classList.remove("fx-negative");
+      if (hit) negativeHit(220);
     }, fx.dur * fx.swapAt);
+
+    if (fx.name === "negative") {
+      setTimeout(function () { root.classList.remove("fx-negative"); }, fx.dur * fx.swapAt + fx.hold);
+    }
 
     setTimeout(function () {
       wordmark.classList.remove("fx-" + fx.name);
       root.classList.remove("fx-static-burst");
       busy = false;
+      drain();
     }, fx.dur);
+  }
+
+  function drain() {
+    if (!queued) return;
+    var q = queued; queued = null;
+    setTimeout(function () { runFx(q[0], q[1], q[2]); }, 80);
   }
 
   if (wordmark && wordmark.hasAttribute("data-swap")) {
@@ -285,8 +325,36 @@
     if (swapCfg.onClick !== false) {
       wordmark.addEventListener("click", function (e) {
         e.preventDefault();
-        runFx(null, true);
+        runFx(null, true, true);
       });
+
+      // press and hold: the word keeps warping until you let go
+      var holdFrame = null, holdStart = 0;
+      function holdTick(now) {
+        if (!distortMap) return;
+        var t = (now - holdStart) / 1000;
+        var strength = Math.min(1, t / 0.6) * (26 + 10 * Math.sin(t * 9));
+        distortMap.setAttribute("scale", strength.toFixed(1));
+        distortNoise.setAttribute("seed", String(Math.floor(now / 60) % 50));
+        holdFrame = requestAnimationFrame(holdTick);
+      }
+      function holdStartFn(e) {
+        if (busy || reduceMotion || (e.pointerType === "mouse" && e.button !== 0)) return;
+        holdStart = performance.now();
+        wordmark.classList.add("is-held");
+        cancelAnimationFrame(holdFrame);
+        holdFrame = requestAnimationFrame(holdTick);
+      }
+      function holdEnd() {
+        if (!wordmark.classList.contains("is-held")) return;
+        cancelAnimationFrame(holdFrame);
+        wordmark.classList.remove("is-held");
+        if (distortMap) distortMap.setAttribute("scale", "0");
+      }
+      wordmark.addEventListener("pointerdown", holdStartFn);
+      wordmark.addEventListener("pointerup", holdEnd);
+      wordmark.addEventListener("pointercancel", holdEnd);
+      wordmark.addEventListener("pointerleave", holdEnd);
     }
 
     var every = Number(swapCfg.everySeconds) || 0;
@@ -310,7 +378,11 @@
   }
 
   // lets you try an effect by name from the browser console: BV.fx("vhs")
-  window.BV = { fx: function (name, swap) { runFx(name, swap !== false); }, effects: EFFECTS.map(function (f) { return f.name; }) };
+  window.BV = {
+    fx: function (name, swap) { runFx(name, swap !== false, true); },
+    effects: EFFECTS.map(function (f) { return f.name; }),
+    negative: function (on) { setNegative(on); }
+  };
 
   // nav links, footer wordmark and social icons glitch when clicked
   doc.querySelectorAll(".nav__link, .footer__wordmark, .notfound__link").forEach(function (n) {
@@ -320,6 +392,42 @@
   doc.querySelectorAll(".socials__link").forEach(function (n) {
     n.addEventListener("click", function () { glitchText(n); });
   });
+
+  // sticky negative mode: the footer wordmark flips the whole site
+  var negToggle = doc.getElementById("negative-toggle");
+  function setNegative(on) {
+    root.classList.toggle("is-negative", !!on);
+    if (negToggle) negToggle.setAttribute("aria-pressed", on ? "true" : "false");
+  }
+  if (negToggle) {
+    negToggle.addEventListener("click", function () {
+      setNegative(!root.classList.contains("is-negative"));
+    });
+  }
+
+  /* ---- custom cursor (desktop, fine pointer only) ------------------ */
+  var cursor = doc.getElementById("cursor");
+  if (cursor && canHover && !reduceMotion && settings.cursor !== false) {
+    var cx = -100, cy = -100, tx = -100, ty = -100, shown = false;
+    root.classList.add("has-cursor");
+    doc.addEventListener("mousemove", function (e) {
+      tx = e.clientX; ty = e.clientY;
+      if (!shown) { cx = tx; cy = ty; shown = true; }
+      var over = e.target.closest ? e.target.closest("a, button, .tile__link") : null;
+      cursor.classList.toggle("is-play", !!(over && over.classList.contains("tile__link")));
+      cursor.classList.toggle("is-link", !!(over && !over.classList.contains("tile__link")));
+    }, { passive: true });
+    doc.addEventListener("mousedown", function () { cursor.classList.add("is-down"); });
+    doc.addEventListener("mouseup", function () { cursor.classList.remove("is-down"); });
+    doc.addEventListener("mouseleave", function () { cursor.style.opacity = "0"; });
+    doc.addEventListener("mouseenter", function () { cursor.style.opacity = ""; });
+    (function follow() {
+      cx += (tx - cx) * 0.35;                               // a little lag = smooth
+      cy += (ty - cy) * 0.35;
+      cursor.style.transform = "translate(" + cx.toFixed(1) + "px, " + cy.toFixed(1) + "px)" + (cursor.classList.contains("is-down") ? " scale(0.7)" : "");
+      requestAnimationFrame(follow);
+    })();
+  }
 
   /* ---- 4. animations ----------------------------------------------- */
   function reveal(node) { node.classList.add("is-in"); }

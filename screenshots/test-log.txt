@@ -7,7 +7,7 @@ after Esc: hidden=true focus=tile__link iframes=0
 Enter opens: hidden=false
 click black area closes: hidden=true
 X closes: hidden=true
-after CONTACT click scrollY=691 footerTop=576
+after CONTACT click scrollY=699 footerTop=568
 focus after 4 tabs: BLONDVIRGO on Instagram (opens in a new tab)
 json-ld types: Person,ItemList
 reduced motion: {"grain":"none","wmOpacity":"1","tileOpacity":"1","scroll":"auto"}

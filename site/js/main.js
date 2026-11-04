@@ -1148,53 +1148,110 @@
     window.BV.phone = { use: use, letGo: letGo, open: function (id) { var app = APPS.filter(function (a) { return a.id === id; })[0]; if (app && app.render) { use(); openApp(app); } }, isUsing: function () { return using; } };
   }
 
-  /* ---- 9. FRIED extras (tumblr page) ------------------------------- */
+  /* ---- 9. FRIED (tumblr page) --------------------------------------- */
   if (doc.body.classList.contains("theme-fried")) {
+    var F = (typeof FRIED !== "undefined" && FRIED) || {};
+    var t0 = Date.now();
     var mq = doc.getElementById("marquee-text");
     if (mq) mq.textContent = (settings.marquee || "") + " " + (settings.marquee || "");
+
     var meta = doc.getElementById("fried-meta");
     if (meta) {
       var visits = 0;
       try { visits = (parseInt(localStorage.getItem("bv-visits") || "0", 10) || 0) + 1; localStorage.setItem("bv-visits", String(visits)); } catch (e) { visits = 1; }
       var newest = posts.map(function (p) { return p.date; }).sort().pop() || "";
-      meta.innerHTML = "you are visitor <b>" + String(visits).padStart(6, "0") + "</b> (to this browser) · last updated " + newest + " · best viewed on a cracked screen";
+      meta.innerHTML = "you are visitor <b>" + String(visits).padStart(6, "0") + "</b> (to this browser) · last updated " + newest + " · level 0 · best viewed on a cracked screen";
     }
-    // wrap every post in a window with working buttons
+
+    // clocks: vhs timecode, taskbar clock, hallway timer
+    function two(n) { return (n < 10 ? "0" : "") + n; }
+    setInterval(function () {
+      var el1 = Math.floor((Date.now() - t0) / 1000);
+      var tc = doc.getElementById("vhs-tc"); if (tc) tc.textContent = two(Math.floor(el1 / 3600)) + ":" + two(Math.floor(el1 / 60) % 60) + ":" + two(el1 % 60);
+      var hc = doc.getElementById("hall-caption"); if (hc) hc.textContent = "you have been here for " + two(Math.floor(el1 / 60)) + ":" + two(el1 % 60);
+      var d = new Date(); var tray = doc.getElementById("tray-clock"); if (tray) tray.textContent = two(d.getHours()) + ":" + two(d.getMinutes());
+    }, 1000);
+
+    /* --- windows: wrap, buttons, drag, taskbar --- */
+    var tasks = doc.getElementById("taskbar-tasks");
+    var winCount = 0;
+    function makeWindow(title, fill, opts) {
+      opts = opts || {};
+      var win = el("div", { "class": "win" + (opts.cls ? " " + opts.cls : "") });
+      var tilt = ((winCount % 2 ? 1 : -1) * (0.3 + Math.random() * 1.1)).toFixed(2) + "deg";
+      win.style.setProperty("--tilt", tilt); win.setAttribute("data-tilt", tilt);
+      var bar = el("div", { "class": "win__bar" }); bar.appendChild(el("b", { text: title }));
+      var btns = el("span", { "class": "win__btns" });
+      var mn = el("button", { "class": "win__btn", type: "button", "aria-label": "Minimise " + title, text: "_" });
+      var mx = el("button", { "class": "win__btn", type: "button", "aria-label": "Maximise " + title, text: "□" });
+      var cl = el("button", { "class": "win__btn", type: "button", "aria-label": "Close " + title, text: "×" });
+      var body = el("div", { "class": "win__body" });
+      if (typeof fill === "function") fill(body); else if (fill) body.appendChild(fill);
+      var task = el("button", { "class": "taskbar__task", type: "button", "aria-pressed": "true", text: title });
+      mn.addEventListener("click", function () { body.hidden = !body.hidden; task.setAttribute("aria-pressed", body.hidden ? "false" : "true"); });
+      mx.addEventListener("click", function () {
+        win.classList.toggle("win--max");
+        win.classList.remove("is-floating"); win.style.left = ""; win.style.top = "";
+      });
+      cl.addEventListener("click", function () { closeWin(win); });
+      task.addEventListener("click", function () {
+        if (win.hidden) { win.hidden = false; task.hidden = false; }
+        body.hidden = !body.hidden; task.setAttribute("aria-pressed", body.hidden ? "false" : "true");
+        if (!body.hidden) win.scrollIntoView({ block: "center", behavior: reduceMotion ? "auto" : "smooth" });
+      });
+      btns.appendChild(mn); btns.appendChild(mx); btns.appendChild(cl); bar.appendChild(btns);
+      win.appendChild(bar); win.appendChild(body);
+      win._task = task; win._title = title;
+      if (tasks) tasks.appendChild(task);
+      // drag by the title bar: the window lifts off the page and floats
+      var dx = 0, dy = 0, dragging = false, moved = false;
+      bar.addEventListener("pointerdown", function (e) {
+        if (e.target.closest(".win__btn") || reduceMotion) return;
+        dragging = true; moved = false;
+        var r = win.getBoundingClientRect(); dx = e.clientX - r.left; dy = e.clientY - r.top;
+        win._w = r.width;
+        try { bar.setPointerCapture(e.pointerId); } catch (err) {}
+      });
+      bar.addEventListener("pointermove", function (e) {
+        if (!dragging) return;
+        if (!moved) {
+          moved = true;
+          win.classList.add("is-dragging", "is-floating"); win.style.width = win._w + "px";
+        }
+        win.style.left = (e.clientX - dx) + "px"; win.style.top = (e.clientY - dy) + "px";
+      });
+      function endDrag() { if (!dragging) return; dragging = false; win.classList.remove("is-dragging"); }
+      bar.addEventListener("pointerup", endDrag); bar.addEventListener("pointercancel", endDrag);
+      winCount++;
+      return win;
+    }
+    var closed = [];
+    function closeWin(win) {
+      win.hidden = true; if (win._task) win._task.hidden = true; closed.push(win);
+      var r = doc.getElementById("fried-restore"); if (r) r.hidden = false;
+    }
+    function restoreAll() {
+      closed.forEach(function (w) { w.hidden = false; if (w._task) w._task.hidden = false; w.classList.remove("is-floating"); w.style.left = ""; w.style.top = ""; });
+      closed = [];
+      var r = doc.getElementById("fried-restore"); if (r) r.hidden = true;
+    }
+    var restoreBtn = doc.getElementById("restore-windows"); if (restoreBtn) restoreBtn.addEventListener("click", restoreAll);
+
+    // posts into windows
     var feedEl = doc.getElementById("blog-feed");
     if (feedEl) {
       Array.prototype.slice.call(feedEl.querySelectorAll(".post")).forEach(function (post, i) {
-        var win = el("div", { "class": "win" });
-        win.style.setProperty("--tilt", ((i % 2 ? 1 : -1) * (0.4 + Math.random() * 1.2)).toFixed(2) + "deg");
-        var bar = el("div", { "class": "win__bar" });
-        bar.innerHTML = "<b>post_" + String(i + 1).padStart(3, "0") + "</b> — " + post.className.match(/post--(\w+)/)[1];
-        var btns = el("span", { "class": "win__btns" });
-        var mn = el("button", { "class": "win__btn", type: "button", "aria-label": "Minimise", text: "_" });
-        var mx = el("button", { "class": "win__btn", type: "button", "aria-label": "Maximise", text: "□" });
-        var cl = el("button", { "class": "win__btn", type: "button", "aria-label": "Close", text: "×" });
-        var body = el("div", { "class": "win__body" });
-        mn.addEventListener("click", function () { body.hidden = !body.hidden; });
-        mx.addEventListener("click", function () { win.classList.toggle("win--max"); win.style.setProperty("--tilt", win.classList.contains("win--max") ? "0deg" : win.getAttribute("data-tilt")); });
-        cl.addEventListener("click", function () { win.hidden = true; doc.getElementById("fried-restore").hidden = false; });
-        win.setAttribute("data-tilt", win.style.getPropertyValue("--tilt"));
-        btns.appendChild(mn); btns.appendChild(mx); btns.appendChild(cl); bar.appendChild(btns);
-        post.parentNode.insertBefore(win, post);
-        body.appendChild(post);
-        win.appendChild(bar); win.appendChild(body);
+        var type = post.className.match(/post--(\w+)/)[1];
+        var win = makeWindow("post_" + String(i + 1).padStart(3, "0") + " — " + type, post);
+        feedEl.appendChild(win);
       });
-      var restore = doc.getElementById("restore-windows");
-      if (restore) restore.addEventListener("click", function () { feedEl.querySelectorAll(".win").forEach(function (w) { w.hidden = false; }); doc.getElementById("fried-restore").hidden = true; });
     }
-    // sidebar as windows
+
+    // sidebar windows
     var sideEl = doc.getElementById("blog-side");
     if (sideEl) {
       sideEl.innerHTML = "";
-      function winBox(title, fill) {
-        var w = el("div", { "class": "win" }); w.style.setProperty("--tilt", ((Math.random() - 0.5) * 2).toFixed(2) + "deg");
-        var bar = el("div", { "class": "win__bar" }); bar.innerHTML = "<b>" + title + "</b>";
-        var body = el("div", { "class": "win__body" }); fill(body);
-        w.appendChild(bar); w.appendChild(body); return w;
-      }
-      sideEl.appendChild(winBox("about.txt", function (b) {
+      sideEl.appendChild(makeWindow("about.txt", function (b) {
         b.appendChild(el("div", { "class": "fried__avatar", "aria-hidden": "true", text: "BV" }));
         b.appendChild(el("p", { text: (settings.blogDescription || "") }));
         var ul = el("ul", { "class": "fried__list" });
@@ -1202,34 +1259,226 @@
         b.appendChild(ul);
         b.appendChild(el("div", { "class": "fried__construction", html: "<span>under construction</span>" }));
       }));
-      sideEl.appendChild(winBox("guestbook.exe", function (b) {
+      sideEl.appendChild(makeWindow("guestbook.exe", function (b) {
         var ig = (settings.socials || []).filter(function (x) { return x.id === "instagram"; })[0];
         b.appendChild(el("p", { text: "sign my guestbook:" }));
         if (ig) b.appendChild(el("a", { href: ig.url, target: "_blank", rel: "noopener", text: "→ dm on instagram" }));
       }));
-      sideEl.appendChild(winBox("tags.db", function (b) {
+      sideEl.appendChild(makeWindow("tags.db", function (b) {
         var counts = {}; posts.forEach(function (p) { (p.tags || []).forEach(function (t) { counts[t] = (counts[t] || 0) + 1; }); });
         var ul = el("ul", { "class": "fried__list" });
         Object.keys(counts).forEach(function (t) { var li = el("li"); li.appendChild(el("a", { href: "/blog#tag-" + encodeURIComponent(t), "data-tag": t, text: "#" + t + " (" + counts[t] + ")" })); ul.appendChild(li); });
         if (!Object.keys(counts).length) ul.appendChild(el("li", { text: "no tags yet" }));
         b.appendChild(ul);
       }));
-      sideEl.appendChild(winBox("counter.cgi", function (b) {
+      sideEl.appendChild(makeWindow("counter.cgi", function (b) {
         b.appendChild(el("span", { "class": "fried__counter", text: String(posts.length).padStart(6, "0") }));
         b.appendChild(el("p", { text: " posts and counting" }));
       }));
     }
-    // stickers
+
+    /* --- extra windows opened from desktop icons --- */
+    var extra = doc.getElementById("fried-extra");
+    var openExtras = {};
+    var stills2 = [];
+    projects.forEach(function (p) { if (p.still) stills2.push(p.still); });
+    posts.forEach(function (p) { if (p.type === "photo") (p.photos || []).forEach(function (f) { if (stills2.indexOf(f) === -1) stills2.push(f); }); });
+
+    var EXTRAS = {
+      hopecore: function () {
+        return makeWindow("hopecore.txt", function (b) {
+          b.classList.add("hope");
+          (F.hopecore || []).forEach(function (line, i) { var pp = el("p", { text: line }); pp.style.setProperty("--i", String(i)); b.appendChild(pp); });
+        });
+      },
+      block: function () {
+        return makeWindow("block 9", function (b) {
+          b.appendChild(el("p", { "class": "block__title", text: "блок 9 · block 9" }));
+          var scene = el("div", { "class": "block" });
+          [7, 5, 9].forEach(function (cols, k) {
+            var t = el("div", { "class": "block__tower" }); t.style.setProperty("--cols", String(cols));
+            var rows = 8 + k * 3;
+            for (var i = 0; i < cols * rows; i++) { var w = el("i"); if (Math.random() < 0.28) w.classList.add("is-lit"); t.appendChild(w); }
+            scene.appendChild(t);
+          });
+          scene.appendChild(el("span", { "class": "block__sign", text: "ждём · waiting" }));
+          b.appendChild(scene);
+          b.appendChild(el("p", { "class": "fried__meta", text: "somewhere between bristol and the block. lights go off at random." }));
+          setInterval(function () { var all = scene.querySelectorAll("i"); var w = all[Math.floor(Math.random() * all.length)]; if (w) w.classList.toggle("is-lit"); }, 900);
+        });
+      },
+      tlop: function () {
+        return makeWindow("2016.exe", function (b) {
+          var box = el("div", { "class": "tlop" });
+          var words = el("div", { "class": "tlop__words" });
+          ["blond", "virgo", "bristol", "2026", "1:1", "4:3", "grain"].forEach(function (w) { words.appendChild(el("span", { text: w })); });
+          box.appendChild(words);
+          if (stills2[0]) box.appendChild(el("img", { "class": "tlop__pic", src: "/images/" + stills2[0], alt: "" }));
+          box.appendChild(el("div", { "class": "tlop__small", text: "orange and peach, 2016 forever. no email. dm only." }));
+          b.appendChild(box);
+        });
+      },
+      pap: function () {
+        return makeWindow("paparazzi.jpg", function (b) {
+          var wrap = el("div", { "class": "pap" });
+          var pick = stills2[Math.floor(Math.random() * stills2.length)];
+          if (pick) wrap.appendChild(el("img", { "class": "pap__img", src: "/images/" + pick, alt: "still from a blondvirgo shoot" }));
+          wrap.appendChild(el("span", { "class": "pap__flash", text: "exclusive" }));
+          var cap = el("p", { "class": "pap__cap", text: "spotted: on set." });
+          cap.appendChild(el("small", { text: "photo: blondvirgo · frame from a music video shoot · no celebrities were harmed" }));
+          wrap.appendChild(cap);
+          b.appendChild(wrap);
+        });
+      },
+      guestbook: function () {
+        return makeWindow("guestbook.exe (2)", function (b) {
+          var ig = (settings.socials || []).filter(function (x) { return x.id === "instagram"; })[0];
+          b.appendChild(el("p", { text: "no comments here. the comment box is my dms." }));
+          if (ig) b.appendChild(el("a", { href: ig.url, target: "_blank", rel: "noopener", text: "→ open instagram" }));
+        });
+      }
+    };
+    function openExtra(id) {
+      if (!extra || !EXTRAS[id]) return;
+      if (openExtras[id] && !openExtras[id].hidden) { openExtras[id].scrollIntoView({ block: "center", behavior: reduceMotion ? "auto" : "smooth" }); return; }
+      if (openExtras[id]) { openExtras[id].hidden = false; if (openExtras[id]._task) openExtras[id]._task.hidden = false; return; }
+      var w = EXTRAS[id](); openExtras[id] = w; extra.appendChild(w);
+      w.scrollIntoView({ block: "center", behavior: reduceMotion ? "auto" : "smooth" });
+    }
+
+    /* --- desktop icons --- */
+    var iconsEl = doc.getElementById("desk-icons");
+    if (iconsEl) {
+      (F.icons || []).forEach(function (ic) {
+        var li = el("li");
+        var b = el("button", { "class": "desk__icon" + (ic.action === "bsod" ? " desk__icon--danger" : ""), type: "button" });
+        var i = el("i"); i.innerHTML = icon(ic.icon, ""); b.appendChild(i); b.appendChild(el("span", { text: ic.name }));
+        b.addEventListener("click", function () {
+          if (ic.action === "work") location.href = "/";
+          else if (ic.action === "restore") restoreAll();
+          else if (ic.action === "bsod") showBsod();
+          else openExtra(ic.action);
+        });
+        li.appendChild(b); iconsEl.appendChild(li);
+      });
+    }
+
+    /* --- taskbar start button opens the site menu --- */
+    var startBtn = doc.getElementById("start-btn");
+    if (startBtn) startBtn.addEventListener("click", function () { setMenu(true); });
+
+    /* --- error dialogs --- */
+    var popups = doc.getElementById("popups");
+    function dialog(text, opts) {
+      if (!popups) return;
+      opts = opts || {};
+      if (popups.querySelectorAll(".dlg").length >= 4) return;
+      var d = el("div", { "class": "dlg" + (opts.cls ? " " + opts.cls : ""), role: "alertdialog", "aria-label": text });
+      d.style.setProperty("--x", rnd(18, 62).toFixed(0) + "vw"); d.style.setProperty("--y", rnd(14, 58).toFixed(0) + "vh");
+      var bar = el("div", { "class": "dlg__bar", text: opts.title || "error" });
+      var btns = el("span", { "class": "win__btns" }); var x = el("button", { "class": "win__btn", type: "button", "aria-label": "Close", text: "×" }); btns.appendChild(x); bar.appendChild(btns);
+      var body = el("div", { "class": "dlg__body" });
+      if (opts.clippy) { body.innerHTML = '<svg class="clip" viewBox="0 0 34 54" aria-hidden="true"><path d="M10 14v28a7 7 0 0 0 14 0V10a5 5 0 0 0-10 0v30a3 3 0 0 0 6 0V16"/></svg>'; }
+      else body.appendChild(el("span", { "class": "dlg__icon", text: "!" }));
+      body.appendChild(el("span", { text: text }));
+      var row = el("div", { "class": "dlg__btns" });
+      (opts.buttons || [{ label: "ok" }]).forEach(function (bt) {
+        var btn = el(bt.href ? "a" : "button", { "class": "dlg__ok", text: bt.label });
+        if (bt.href) { btn.setAttribute("href", bt.href); btn.setAttribute("target", "_blank"); btn.setAttribute("rel", "noopener"); } else btn.setAttribute("type", "button");
+        btn.addEventListener("click", function () { d.remove(); });
+        row.appendChild(btn);
+      });
+      x.addEventListener("click", function () { d.remove(); });
+      d.appendChild(bar); d.appendChild(body); d.appendChild(row);
+      // draggable
+      var dx = 0, dy = 0, dragging = false;
+      bar.addEventListener("pointerdown", function (e) { if (e.target.closest(".win__btn")) return; dragging = true; var r = d.getBoundingClientRect(); dx = e.clientX - r.left; dy = e.clientY - r.top; try { bar.setPointerCapture(e.pointerId); } catch (err) {} });
+      bar.addEventListener("pointermove", function (e) { if (!dragging) return; d.style.setProperty("--x", (e.clientX - dx) + "px"); d.style.setProperty("--y", (e.clientY - dy) + "px"); });
+      bar.addEventListener("pointerup", function () { dragging = false; }); bar.addEventListener("pointercancel", function () { dragging = false; });
+      popups.appendChild(d);
+      var first = d.querySelector(".dlg__ok"); if (first && opts.focus !== false) first.focus();
+      return d;
+    }
+    doc.addEventListener("keydown", function (e) {
+      if (e.key !== "Escape" || !popups) return;
+      var last = popups.querySelector(".dlg:last-child"); if (last) { e.preventDefault(); last.remove(); }
+    });
+    if (!reduceMotion && (F.dialogs || []).length) {
+      setTimeout(function () { dialog(F.dialogs[Math.floor(Math.random() * F.dialogs.length)]); }, 14000);
+      setInterval(function () {
+        if (doc.hidden || menuOpen || (player && !player.hidden)) return;
+        if (Math.random() < 0.4) dialog(F.dialogs[Math.floor(Math.random() * F.dialogs.length)]);
+      }, 40000);
+      // the paperclip
+      setTimeout(function () {
+        var ig = (settings.socials || []).filter(function (x) { return x.id === "instagram"; })[0];
+        dialog(F.clippy || "it looks like you are trying to book a music video.", { title: "assistant", clippy: true, cls: "dlg--clippy", focus: false,
+          buttons: [{ label: "yes, dm", href: ig ? ig.url : "#" }, { label: "no" }] });
+      }, 4000);
+    }
+    window.BV.fried = { dialog: dialog, open: openExtra, bsod: function () { showBsod(); }, noclip: function () { noclip(); }, eas: function () { eas(); } };
+
+    /* --- emergency alert strip --- */
+    var easEl = doc.getElementById("eas"), easText = doc.getElementById("eas-text");
+    function eas() {
+      if (!easEl || !F.eas) return;
+      easText.textContent = F.eas; easEl.hidden = false;
+      var sp = easEl.querySelector("span"); sp.style.animation = "none"; void sp.offsetWidth; sp.style.animation = "";
+      setTimeout(function () { easEl.hidden = true; }, 23000);
+    }
+    if (!reduceMotion) setInterval(function () { if (!doc.hidden && Math.random() < 0.35) eas(); }, 120000);
+
+    /* --- noclip: fall through the floor for a second --- */
+    var noclipEl = doc.getElementById("noclip");
+    function noclip() {
+      if (!noclipEl || reduceMotion) return;
+      noclipEl.hidden = false; noclipEl.style.animation = "none"; void noclipEl.offsetWidth; noclipEl.style.animation = "";
+      setTimeout(function () { noclipEl.hidden = true; }, 1700);
+    }
+    if (!reduceMotion) setInterval(function () { if (!doc.hidden && !(player && !player.hidden) && Math.random() < 0.25) noclip(); }, 90000);
+
+    /* --- bsod --- */
+    var bsod = doc.getElementById("bsod"), bsodBody = doc.getElementById("bsod-body");
+    function showBsod() {
+      if (!bsod) return;
+      bsodBody.innerHTML = "A problem has been detected and blondvirgo has been shut down to prevent damage to your taste.\n\nTOO_MUCH_GRAIN\n\nIf this is the first time you've seen this stop error screen, restart your computer. If this screen appears again, follow these steps:\n\nCheck to make sure any new music videos are properly installed. If this is a new installation, ask your director for any updates you might need.\n\nTechnical information:\n\n*** STOP: 0x0000001A (0x00000016, 0x00000026, 0x00000001, 0x00000001)\n\n<b>press any key to continue</b>";
+      bsod.hidden = false; bsod.focus();
+    }
+    function hideBsod() { if (bsod && !bsod.hidden) bsod.hidden = true; }
+    if (bsod) { bsod.addEventListener("click", hideBsod); doc.addEventListener("keydown", function (e) { if (!bsod.hidden) { e.preventDefault(); hideBsod(); } }); }
+
+    /* --- ghost cursor: a second arrow that wanders on its own --- */
+    var ghost = doc.getElementById("ghost-cursor");
+    if (ghost && !reduceMotion) {
+      var gx = -40, gy = -40, gtx = -40, gty = -40, gon = false;
+      setInterval(function () {
+        if (doc.hidden || gon || Math.random() > 0.4) return;
+        gon = true; ghost.classList.add("is-on");
+        gx = rnd(0, innerWidth); gy = rnd(0, innerHeight); gtx = rnd(0, innerWidth); gty = rnd(0, innerHeight);
+        setTimeout(function () { ghost.classList.remove("is-on"); gon = false; }, 6000);
+      }, 20000);
+      (function wander() {
+        if (gon) {
+          gx += (gtx - gx) * 0.02; gy += (gty - gy) * 0.02;
+          if (Math.abs(gtx - gx) < 8 && Math.abs(gty - gy) < 8) { gtx = rnd(0, innerWidth); gty = rnd(0, innerHeight); }
+          ghost.style.transform = "translate(" + gx.toFixed(0) + "px," + gy.toFixed(0) + "px)";
+        }
+        requestAnimationFrame(wander);
+      })();
+    }
+
+    /* --- stickers --- */
     var stickerBox = doc.getElementById("stickers");
-    if (stickerBox && Array.isArray(settings.stickers) && !reduceMotion) {
-      settings.stickers.forEach(function (txt, i) {
-        var isEmoji = /^[^\w\s]+$/.test(txt) && txt.length <= 2;
-        var cls = "sticker" + (isEmoji ? " sticker--emoji" : (i % 3 === 0 ? " sticker--box" : ""));
+    var stickerList = (F.stickers || settings.stickers || []);
+    if (stickerBox && stickerList.length && !reduceMotion) {
+      stickerList.forEach(function (txt, i) {
+        var isEmoji = /^[^\w\sЀ-ӿ]+$/.test(txt) && txt.length <= 2;
+        var cls = "sticker" + (isEmoji ? " sticker--emoji" : (i % 4 === 0 ? " sticker--box" : (i % 4 === 2 ? " sticker--orange" : "")));
         var st = el("span", { "class": cls, text: txt });
         st.style.setProperty("--x", rnd(2, 92).toFixed(1) + "%");
         st.style.setProperty("--y", rnd(4, 96).toFixed(1) + "%");
         st.style.setProperty("--r", rnd(-25, 25).toFixed(0) + "deg");
-        st.style.setProperty("--s", rnd(0.8, 1.6).toFixed(2));
+        st.style.setProperty("--s", rnd(0.8, 1.7).toFixed(2));
         stickerBox.appendChild(st);
       });
     }

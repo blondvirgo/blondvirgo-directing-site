@@ -44,3 +44,49 @@ const POSTS = [
     published: true,
   },
 ];
+
+
+/* =====================================================================
+   The tumblr page's extra texts. All decorative, all editable.
+   ===================================================================== */
+const FRIED = {
+  // error-dialog messages that pop up now and then (close with ok or Esc)
+  dialogs: [
+    "are you still watching?",
+    "it is later than you think.",
+    "the hum is not the lights.",
+    "you have unread memories.",
+    "this page is best viewed in 2016.",
+    "do not look behind the monitor.",
+    "sign the guestbook before you go.",
+    "noclip detected. stay on the carpet.",
+    "your session has been saved to vhs.",
+    "wrong floor.",
+  ],
+  // hopecore.txt
+  hopecore: [
+    "you are not late.",
+    "the city is still there in the morning.",
+    "keep shooting.",
+    "nobody is coming to tell you it is good. do it anyway.",
+    "the grain is the point.",
+    "rest. then again.",
+  ],
+  // emergency alert strip (facts only)
+  eas: "THIS IS A TEST OF THE BLONDVIRGO BROADCAST SYSTEM · THERE IS NO EMERGENCY · MUSIC VIDEO DIRECTOR · BRISTOL, UK · NO EMAIL · DM ONLY · THIS CONCLUDES THE TEST",
+  // the paperclip
+  clippy: "it looks like you are trying to book a music video.",
+  // desktop icons (left column)
+  icons: [
+    { name: "my videos",      icon: "work",     action: "work" },
+    { name: "hopecore.txt",   icon: "notes",    action: "hopecore" },
+    { name: "block 9",        icon: "phone",    action: "block" },
+    { name: "2016.exe",       icon: "video",    action: "tlop" },
+    { name: "paparazzi",      icon: "camera",   action: "pap" },
+    { name: "guestbook",      icon: "chat",     action: "guestbook" },
+    { name: "recycle bin",    icon: "settings", action: "restore" },
+    { name: "DO NOT OPEN.exe", icon: "text",    action: "bsod" },
+  ],
+  // sticker words (facts, emoji, gen z)
+  stickers: ["🚬", "💿", "📼", "🔥", "🖤", "☆", "💀", "🗿", "🧍", "👁", "2026", "bristol", "1:1", "4:3", "grain", "underground", "dm only", "no email", "real", "fr", "it's giving", "core", "БЛОНДВИРГО", "ждём", "level 0", "noclip", "100%", "ok", "brb", "☠", "✦", "🎞", "📟", "💾"],
+};

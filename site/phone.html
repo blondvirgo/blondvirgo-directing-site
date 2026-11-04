@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>iphone 5 – BLONDVIRGO</title>
+  <meta name="description" content="A silver iPhone 5 you can spin and use: stills, videos, notes and contacts from BLONDVIRGO.">
+  <meta name="theme-color" content="#000000">
+  <meta name="color-scheme" content="dark">
+
+  <!-- Share preview for links sent in DMs and on social -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="BLONDVIRGO">
+  <meta property="og:title" content="iphone 5 – BLONDVIRGO">
+  <meta property="og:description" content="Music video director in Bristol, UK. Narrative, wide-angle, grainy, colour-driven work for underground hip hop and rap.">
+  <meta property="og:image" content="/share.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="BLONDVIRGO wordmark, white on black">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <!-- Tab icon -->
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/favicon.png" type="image/png" sizes="32x32">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+
+  <!-- Fonts live inside the site. No outside font links. -->
+  <link rel="preload" href="/fonts/archivo-variable-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/inter-600-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <script type="importmap">{ "imports": { "three": "/js/vendor/three.module.min.js" } }</script>
+  <link rel="stylesheet" href="/css/style.css">
+
+  <!-- Marks the page as "JavaScript is on". Animations only hide things once this class exists. -->
+  <script>document.documentElement.classList.add("js");</script>
+
+</head>
+<body id="top" class="theme-phone" data-page="phone">
+
+  <div class="grain" aria-hidden="true"></div>
+  <div class="scanlines" aria-hidden="true"></div>
+  <div class="cursor" id="cursor" aria-hidden="true">
+    <span class="cursor__blob"></span><span class="cursor__blob"></span><span class="cursor__blob"></span>
+    <span class="cursor__blob"></span><span class="cursor__blob"></span><span class="cursor__blob"></span>
+  </div>
+
+  <!-- filters used by the title effects and the liquid cursor -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <filter id="bv-distort" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
+      <feTurbulence id="bv-distort-noise" type="fractalNoise" baseFrequency="0.012 0.35" numOctaves="1" seed="2" result="noise"/>
+      <feDisplacementMap id="bv-distort-map" in="SourceGraphic" in2="noise" scale="0" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <filter id="bv-goo" x="-50%" y="-50%" width="200%" height="200%" color-interpolation-filters="sRGB">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur"/>
+      <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -8" result="goo"/>
+      <feComposite in="SourceGraphic" in2="goo" operator="atop"/>
+    </filter>
+  </svg>
+
+  <!-- the menu: three bars top-left, full-screen list when open.
+       Items come from SETTINGS.nav in projects.js -->
+  <button class="menu-btn" id="menu-btn" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="menu">
+    <span></span><span></span><span></span>
+  </button>
+  <nav class="menu" id="menu" aria-label="Main" hidden>
+    <ul class="menu__list" id="menu-list">
+      <noscript><li><a class="menu__link" href="/">blondvirgo</a></li><li><a class="menu__link" href="/phone">iphone 5</a></li><li><a class="menu__link" href="/blog">tumblr</a></li></noscript>
+    </ul>
+  </nav>
+
+  <header class="masthead">
+    <h1 class="masthead__title">
+      <a class="wordmark blur-in" id="wordmark" href="#top" data-swap aria-label="BLONDVIRGO">
+        <span class="wordmark__text">BLONDVIRGO</span>
+        <span class="wordmark__ghost wordmark__ghost--a" aria-hidden="true">BLONDVIRGO</span>
+        <span class="wordmark__ghost wordmark__ghost--b" aria-hidden="true">BLONDVIRGO</span>
+      </a>
+    </h1>
+  </header>
+
+  <main class="phone-page" id="phone-page">
+    <p class="phone-page__hint" id="phone-hint">drag to spin · tap the phone to use it</p>
+
+    <div class="stage" id="phone-stage">
+      <!-- 3D view (Three.js) goes in here; the CSS phone below is the
+           in-use view and the fallback when WebGL is not available -->
+      <div class="stage__3d" id="stage-3d" aria-hidden="true"></div>
+
+      <div class="phone" id="phone" style="--ry: -28deg; --rx: 6deg">
+        <div class="phone__face phone__face--back" aria-hidden="true">
+          <span class="phone__inlay phone__inlay--top"></span>
+          <span class="phone__inlay phone__inlay--bottom"></span>
+          <span class="phone__lens"></span>
+          <span class="phone__flash"></span>
+          <span class="phone__apple"></span>
+          <span class="phone__mark">iPhone</span>
+          <span class="phone__fine">Designed by Apple in California · Assembled in China<br>Model A1429 · FCC ID BCG-E2599A</span>
+        </div>
+        <div class="phone__face phone__face--left" aria-hidden="true"><span class="phone__btn phone__btn--mute"></span><span class="phone__btn phone__btn--vol"></span><span class="phone__btn phone__btn--vol2"></span></div>
+        <div class="phone__face phone__face--right" aria-hidden="true"></div>
+        <div class="phone__face phone__face--top" aria-hidden="true"><span class="phone__btn phone__btn--power"></span></div>
+        <div class="phone__face phone__face--bottom" aria-hidden="true"><span class="phone__port"></span></div>
+
+        <div class="phone__face phone__face--front">
+          <span class="phone__speaker" aria-hidden="true"></span>
+          <span class="phone__cam" aria-hidden="true"></span>
+
+          <div class="screen" id="screen" aria-label="Phone screen">
+            <div class="screen__status" aria-hidden="true">
+              <span class="screen__carrier">blondvirgo</span>
+              <span class="screen__time" id="screen-time">00:00</span>
+              <span class="screen__battery"><i></i></span>
+            </div>
+            <section class="app app--lock is-active" id="app-lock">
+              <p class="lock__time" id="lock-time">00:00</p>
+              <p class="lock__date" id="lock-date"></p>
+              <button class="lock__unlock" id="unlock" type="button">press to unlock</button>
+            </section>
+            <section class="app app--home" id="app-home" hidden>
+              <div class="home__grid" id="home-grid"></div>
+              <div class="home__dock" id="home-dock"></div>
+            </section>
+            <section class="app app--view" id="app-view" hidden>
+              <header class="app__bar">
+                <button class="app__back" id="app-back" type="button">‹ back</button>
+                <span class="app__title" id="app-title"></span>
+              </header>
+              <div class="app__body" id="app-body"></div>
+            </section>
+          </div>
+
+          <button class="phone__home" id="home-button" type="button" aria-label="Home button"></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="phone-page__controls">
+      <button class="phone-page__btn" id="phone-spin" type="button" aria-pressed="true">spin</button>
+      <button class="phone-page__btn" id="phone-reset" type="button">let go</button>
+    </div>
+  </main>
+  <!-- footer built once, from SETTINGS in projects.js -->
+  <footer class="footer" id="contact" tabindex="-1" data-footer></footer>
+
+  <!-- Full-screen player. Empty until a tile is clicked. -->
+  <div class="player" id="player" role="dialog" aria-modal="true" aria-labelledby="player-caption" hidden>
+    <span class="player__sentinel" id="player-sentinel-start" tabindex="0" aria-hidden="true"></span>
+    <button class="player__close" id="player-close" type="button" aria-label="Close player">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4.2 2.8 12 10.6l7.8-7.8 1.4 1.4L13.4 12l7.8 7.8-1.4 1.4L12 13.4l-7.8 7.8-1.4-1.4L10.6 12 2.8 4.2z"/></svg>
+    </button>
+    <div class="player__stage" id="player-stage">
+      <div class="player__frame" id="player-frame"></div>
+      <p class="player__caption" id="player-caption"></p>
+      <a class="player__external" id="player-external" href="#" target="_blank" rel="noopener">watch on vimeo</a>
+    </div>
+    <span class="player__sentinel" id="player-sentinel-end" tabindex="0" aria-hidden="true"></span>
+  </div>
+
+  <script src="/projects.js"></script>
+  <script src="/posts.js"></script>
+  <script src="/js/main.js"></script>
+</body>
+</html>

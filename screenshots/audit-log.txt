@@ -1,0 +1,18 @@
+45/45 passed
+PASS fried: windows, icons, taskbar tasks, vhs — {"wins":3,"side":4,"icons":8,"tasks":7,"vhs":"00:00:02","start":true,"bg":"rgb(216, 199, 106)"}
+PASS fried: paperclip dialog appears with dm link
+PASS fried: dialog "no" closes it
+PASS fried: 5 extra windows open from icons — hopecore.txt | block 9 | 2016.exe | paparazzi.jpg | guestbook.exe (2)
+PASS fried: taskbar button minimises
+PASS fried: window drags (floats)
+PASS fried: close hides window + task
+PASS fried: recycle bin restores
+PASS fried: bsod shows
+PASS fried: any key leaves bsod
+PASS fried: Esc closes dialog
+PASS fried: noclip shows
+PASS fried: eas strip shows
+PASS fried: start opens menu
+PASS fried: no overflow — 1440
+PASS fried 390: no overflow — 390
+ERRORS: none

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>blog – BLONDVIRGO</title>
+  <title>tumblr – BLONDVIRGO</title>
   <meta name="description" content="Thoughts, stills, behind the scenes and music from BLONDVIRGO, Alex Rusu, music video director in Bristol.">
   <meta name="theme-color" content="#000000">
   <meta name="color-scheme" content="dark">
@@ -11,7 +11,7 @@
   <!-- Share preview for links sent in DMs and on social -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="BLONDVIRGO">
-  <meta property="og:title" content="blog – BLONDVIRGO">
+  <meta property="og:title" content="tumblr – BLONDVIRGO">
   <meta property="og:description" content="Music video director in Bristol, UK. Narrative, wide-angle, grainy, colour-driven work for underground hip hop and rap.">
   <meta property="og:image" content="/share.jpg">
   <meta property="og:image:width" content="1200">
@@ -33,7 +33,7 @@
   <script>document.documentElement.classList.add("js");</script>
 
 </head>
-<body id="top" data-page="blog">
+<body id="top" class="theme-fried" data-page="blog">
 
   <div class="grain" aria-hidden="true"></div>
   <div class="scanlines" aria-hidden="true"></div>
@@ -55,6 +55,17 @@
     </filter>
   </svg>
 
+  <!-- the menu: three bars top-left, full-screen list when open.
+       Items come from SETTINGS.nav in projects.js -->
+  <button class="menu-btn" id="menu-btn" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="menu">
+    <span></span><span></span><span></span>
+  </button>
+  <nav class="menu" id="menu" aria-label="Main" hidden>
+    <ul class="menu__list" id="menu-list">
+      <noscript><li><a class="menu__link" href="/">blondvirgo</a></li><li><a class="menu__link" href="/phone">iphone 5</a></li><li><a class="menu__link" href="/blog">tumblr</a></li></noscript>
+    </ul>
+  </nav>
+
   <header class="masthead">
     <h1 class="masthead__title">
       <a class="wordmark blur-in" id="wordmark" href="#top" data-swap aria-label="BLONDVIRGO">
@@ -63,24 +74,26 @@
         <span class="wordmark__ghost wordmark__ghost--b" aria-hidden="true">BLONDVIRGO</span>
       </a>
     </h1>
-    <!-- the menu is built once, from SETTINGS.nav in projects.js -->
-    <nav class="nav" id="nav" aria-label="Main">
-      <noscript><a class="nav__link" href="/">work</a> <a class="nav__link" href="/blog">blog</a> <a class="nav__link" href="/phone">phone</a></noscript>
-    </nav>
   </header>
 
-  <main class="blog" id="blog">
-    <div class="blog__wrap">
-      <section class="blog__feed" aria-label="Posts">
-        <h2 class="visually-hidden">Blog</h2>
-        <div id="blog-feed">
-          <noscript><p class="blog__empty">This page needs JavaScript to show the posts.</p></noscript>
-        </div>
-      </section>
-      <aside class="blog__side" id="blog-side" aria-label="About this blog"></aside>
-    </div>
-  </main>
+  <main class="fried" id="blog">
+    <div class="fried__marquee" aria-hidden="true"><span id="marquee-text"></span></div>
 
+    <header class="fried__head">
+      <h2 class="fried__title"><span class="fried__blink">★</span> blondvirgo's page <span class="fried__blink">★</span></h2>
+      <p class="fried__meta" id="fried-meta"></p>
+    </header>
+
+    <div class="fried__wrap">
+      <section class="fried__feed" id="blog-feed" aria-label="Posts">
+        <noscript><p class="blog__empty">This page needs JavaScript to show the posts.</p></noscript>
+      </section>
+      <aside class="fried__side" id="blog-side" aria-label="About this blog"></aside>
+    </div>
+
+    <p class="fried__restore" id="fried-restore" hidden><button type="button" id="restore-windows">restore closed windows</button></p>
+    <div class="fried__stickers" id="stickers" aria-hidden="true"></div>
+  </main>
   <!-- footer built once, from SETTINGS in projects.js -->
   <footer class="footer" id="contact" tabindex="-1" data-footer></footer>
 

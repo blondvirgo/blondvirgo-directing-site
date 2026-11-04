@@ -3,15 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>phone – BLONDVIRGO</title>
-  <meta name="description" content="A white iPhone 5c you can spin and use: stills, videos, notes and contacts from BLONDVIRGO.">
+  <title>iphone 5 – BLONDVIRGO</title>
+  <meta name="description" content="A silver iPhone 5 you can spin and use: stills, videos, notes and contacts from BLONDVIRGO.">
   <meta name="theme-color" content="#000000">
   <meta name="color-scheme" content="dark">
 
   <!-- Share preview for links sent in DMs and on social -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="BLONDVIRGO">
-  <meta property="og:title" content="phone – BLONDVIRGO">
+  <meta property="og:title" content="iphone 5 – BLONDVIRGO">
   <meta property="og:description" content="Music video director in Bristol, UK. Narrative, wide-angle, grainy, colour-driven work for underground hip hop and rap.">
   <meta property="og:image" content="/share.jpg">
   <meta property="og:image:width" content="1200">
@@ -27,13 +27,14 @@
   <!-- Fonts live inside the site. No outside font links. -->
   <link rel="preload" href="/fonts/archivo-variable-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/fonts/inter-600-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <script type="importmap">{ "imports": { "three": "/js/vendor/three.module.min.js" } }</script>
   <link rel="stylesheet" href="/css/style.css">
 
   <!-- Marks the page as "JavaScript is on". Animations only hide things once this class exists. -->
   <script>document.documentElement.classList.add("js");</script>
 
 </head>
-<body id="top" data-page="phone">
+<body id="top" class="theme-phone" data-page="phone">
 
   <div class="grain" aria-hidden="true"></div>
   <div class="scanlines" aria-hidden="true"></div>
@@ -55,6 +56,17 @@
     </filter>
   </svg>
 
+  <!-- the menu: three bars top-left, full-screen list when open.
+       Items come from SETTINGS.nav in projects.js -->
+  <button class="menu-btn" id="menu-btn" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="menu">
+    <span></span><span></span><span></span>
+  </button>
+  <nav class="menu" id="menu" aria-label="Main" hidden>
+    <ul class="menu__list" id="menu-list">
+      <noscript><li><a class="menu__link" href="/">blondvirgo</a></li><li><a class="menu__link" href="/phone">iphone 5</a></li><li><a class="menu__link" href="/blog">tumblr</a></li></noscript>
+    </ul>
+  </nav>
+
   <header class="masthead">
     <h1 class="masthead__title">
       <a class="wordmark blur-in" id="wordmark" href="#top" data-swap aria-label="BLONDVIRGO">
@@ -63,22 +75,25 @@
         <span class="wordmark__ghost wordmark__ghost--b" aria-hidden="true">BLONDVIRGO</span>
       </a>
     </h1>
-    <!-- the menu is built once, from SETTINGS.nav in projects.js -->
-    <nav class="nav" id="nav" aria-label="Main">
-      <noscript><a class="nav__link" href="/">work</a> <a class="nav__link" href="/blog">blog</a> <a class="nav__link" href="/phone">phone</a></noscript>
-    </nav>
   </header>
 
   <main class="phone-page" id="phone-page">
     <p class="phone-page__hint" id="phone-hint">drag to spin · tap the phone to use it</p>
 
     <div class="stage" id="phone-stage">
+      <!-- 3D view (Three.js) goes in here; the CSS phone below is the
+           in-use view and the fallback when WebGL is not available -->
+      <div class="stage__3d" id="stage-3d" aria-hidden="true"></div>
+
       <div class="phone" id="phone" style="--ry: -28deg; --rx: 6deg">
-        <!-- six faces of a white iPhone 5c, built in CSS -->
         <div class="phone__face phone__face--back" aria-hidden="true">
+          <span class="phone__inlay phone__inlay--top"></span>
+          <span class="phone__inlay phone__inlay--bottom"></span>
           <span class="phone__lens"></span>
           <span class="phone__flash"></span>
-          <span class="phone__mark">BV</span>
+          <span class="phone__apple"></span>
+          <span class="phone__mark">iPhone</span>
+          <span class="phone__fine">Designed by Apple in California · Assembled in China<br>Model A1429 · FCC ID BCG-E2599A</span>
         </div>
         <div class="phone__face phone__face--left" aria-hidden="true"><span class="phone__btn phone__btn--mute"></span><span class="phone__btn phone__btn--vol"></span><span class="phone__btn phone__btn--vol2"></span></div>
         <div class="phone__face phone__face--right" aria-hidden="true"></div>
@@ -95,21 +110,15 @@
               <span class="screen__time" id="screen-time">00:00</span>
               <span class="screen__battery"><i></i></span>
             </div>
-
-            <!-- lock screen -->
             <section class="app app--lock is-active" id="app-lock">
               <p class="lock__time" id="lock-time">00:00</p>
               <p class="lock__date" id="lock-date"></p>
               <button class="lock__unlock" id="unlock" type="button">press to unlock</button>
             </section>
-
-            <!-- home screen: icons are built from the APPS list in main.js -->
             <section class="app app--home" id="app-home" hidden>
               <div class="home__grid" id="home-grid"></div>
               <div class="home__dock" id="home-dock"></div>
             </section>
-
-            <!-- one view for every app, filled by main.js -->
             <section class="app app--view" id="app-view" hidden>
               <header class="app__bar">
                 <button class="app__back" id="app-back" type="button">‹ back</button>
@@ -129,7 +138,6 @@
       <button class="phone-page__btn" id="phone-reset" type="button">let go</button>
     </div>
   </main>
-
   <!-- footer built once, from SETTINGS in projects.js -->
   <footer class="footer" id="contact" tabindex="-1" data-footer></footer>
 

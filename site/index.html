@@ -73,6 +73,17 @@
     </filter>
   </svg>
 
+  <!-- the menu: three bars top-left, full-screen list when open.
+       Items come from SETTINGS.nav in projects.js -->
+  <button class="menu-btn" id="menu-btn" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="menu">
+    <span></span><span></span><span></span>
+  </button>
+  <nav class="menu" id="menu" aria-label="Main" hidden>
+    <ul class="menu__list" id="menu-list">
+      <noscript><li><a class="menu__link" href="/">blondvirgo</a></li><li><a class="menu__link" href="/phone">iphone 5</a></li><li><a class="menu__link" href="/blog">tumblr</a></li></noscript>
+    </ul>
+  </nav>
+
   <header class="masthead">
     <h1 class="masthead__title">
       <a class="wordmark blur-in" id="wordmark" href="#top" data-swap aria-label="BLONDVIRGO">
@@ -81,12 +92,7 @@
         <span class="wordmark__ghost wordmark__ghost--b" aria-hidden="true">BLONDVIRGO</span>
       </a>
     </h1>
-    <!-- the menu is built once, from SETTINGS.nav in projects.js -->
-    <nav class="nav" id="nav" aria-label="Main">
-      <noscript><a class="nav__link" href="/">work</a> <a class="nav__link" href="/blog">blog</a> <a class="nav__link" href="/phone">phone</a></noscript>
-    </nav>
   </header>
-
   <main>
     <section class="hero" aria-label="Contact">
       <!-- BIO: hidden until a DRAFT is chosen. To show it, paste the text

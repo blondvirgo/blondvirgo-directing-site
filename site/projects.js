@@ -37,11 +37,14 @@
 const SETTINGS = {
   // The menu, in order. Shown on every page.
   nav: [
-    { label: "work",    href: "/#work" },
-    { label: "blog",    href: "/blog" },
-    { label: "phone",   href: "/phone" },
-    { label: "contact", href: "#contact" },
+    { label: "blondvirgo", href: "/",      page: "work" },
+    { label: "iphone 5",   href: "/phone", page: "phone" },
+    { label: "tumblr",     href: "/blog",  page: "blog" },
   ],
+  // the scrolling line at the top of the tumblr page (facts only)
+  marquee: "welcome to blondvirgo's page ★ music video director ★ bristol, uk ★ est. 2026 ★ 1:1 and 4:3 ★ grainy ★ no email, dm only ★",
+  // decorative stickers scattered over the tumblr page
+  stickers: ["🚬", "💿", "📼", "🔥", "🖤", "☆", "2026", "bristol", "1:1", "4:3", "grain", "underground", "dm only", "no email", "🎞", "☠", "✦", "100%", "ok", "brb"],
   // The only contact routes. Order = order on the page.
   socials: [
     { id: "instagram", label: "BLONDVIRGO on Instagram", url: "https://www.instagram.com/arussuuuu/" },

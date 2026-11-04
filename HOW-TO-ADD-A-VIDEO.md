@@ -105,13 +105,21 @@ You now have a branch and a pull request. Keep its page open.
 
 ---
 
-## The blog (`/blog`)
+## The menu
+
+The three bars top-left open the menu. Its items live in `projects.js` under
+`nav`: change a label there and it changes everywhere.
+
+## The tumblr page (`/blog`)
 
 Posts live in `site/posts.js`, newest at the top. Each post is one block
 between `{` and `},`. The types are listed at the top of that file: text,
 photo, video, audio, quote, link, chat. Photos go in `site/images/`, audio
 files in `site/audio/` (MP3, under 3MB). Add a post the same way as a video:
 edit the file on a new branch, check the Deploy Preview, merge.
+
+The scrolling line at the top and the scattered stickers are two lists in
+`projects.js` (`marquee` and `stickers`). Keep them factual.
 
 ## The phone (`/phone`)
 

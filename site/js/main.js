@@ -36,6 +36,7 @@
     if (attrs) {
       Object.keys(attrs).forEach(function (k) {
         if (k === "text") node.textContent = attrs[k];
+        else if (k === "html") node.innerHTML = attrs[k];
         else if (attrs[k] !== null && attrs[k] !== undefined) node.setAttribute(k, attrs[k]);
       });
     }
@@ -106,17 +107,58 @@
 
   var page = doc.body.getAttribute("data-page") || "";
 
-  // the menu
-  var navEl = doc.getElementById("nav");
-  if (navEl && Array.isArray(settings.nav)) {
-    settings.nav.forEach(function (item) {
-      var href = item.href;
-      // "#contact" / "#work" on another page go back to the homepage
-      if (href.charAt(0) === "#" && page !== "work") href = "/" + href;
-      var a = el("a", { "class": "nav__link", href: href, text: item.label });
-      var isCurrent = (item.label === page) || (page === "work" && item.href === "/#work");
-      if (isCurrent) a.setAttribute("aria-current", "page");
-      navEl.appendChild(a);
+  // the menu: three bars top-left; full-screen list from SETTINGS.nav
+  var menuBtn = doc.getElementById("menu-btn");
+  var menu = doc.getElementById("menu");
+  var menuList = doc.getElementById("menu-list");
+  var menuOpen = false, menuLastFocus = null;
+  if (menuList && Array.isArray(settings.nav)) {
+    settings.nav.forEach(function (item, i) {
+      var li = el("li", { "class": "menu__item" }); li.style.setProperty("--i", String(i));
+      var a = el("a", { "class": "menu__link", href: item.href, text: item.label });
+      if (item.page === page) a.setAttribute("aria-current", "page");
+      li.appendChild(a); menuList.appendChild(li);
+    });
+    var sub = el("li", { "class": "menu__item menu__sub", text: "© 2026 alex rusu / blondvirgo" });
+    sub.style.setProperty("--i", String(settings.nav.length)); menuList.appendChild(sub);
+  }
+  function setMenu(open) {
+    if (!menu || !menuBtn) return;
+    menuOpen = open;
+    menuBtn.setAttribute("aria-expanded", open ? "true" : "false");
+    menuBtn.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+    if (open) {
+      menuLastFocus = doc.activeElement;
+      menu.hidden = false;
+      void menu.offsetWidth;
+      menu.classList.add("is-open");
+      doc.body.classList.add("is-locked");
+      var first = menu.querySelector(".menu__link"); if (first) first.focus();
+    } else {
+      menu.classList.remove("is-open");
+      menu.hidden = true;
+      doc.body.classList.remove("is-locked");
+      if (menuLastFocus && menuLastFocus.focus) menuLastFocus.focus();
+    }
+  }
+  if (menuBtn && menu) {
+    menuBtn.addEventListener("click", function () { setMenu(!menuOpen); });
+    doc.addEventListener("keydown", function (e) {
+      if (!menuOpen) return;
+      if (e.key === "Escape") { e.preventDefault(); setMenu(false); return; }
+      if (e.key === "Tab") {
+        // keep focus inside: the bars button, then the links, round and round
+        var ring = [menuBtn].concat(Array.prototype.slice.call(menu.querySelectorAll(".menu__link")));
+        var idx = ring.indexOf(doc.activeElement);
+        e.preventDefault();
+        var next = idx === -1 ? 1 : (idx + (e.shiftKey ? -1 : 1) + ring.length) % ring.length;
+        ring[next].focus();
+      }
+    });
+    // a link to the current page just closes the menu
+    menu.addEventListener("click", function (e) {
+      var a = e.target.closest(".menu__link");
+      if (a && a.getAttribute("aria-current") === "page") { e.preventDefault(); setMenu(false); }
     });
   }
 
@@ -479,7 +521,7 @@
   };
 
   // nav links, footer wordmark and social icons glitch when clicked
-  doc.querySelectorAll(".nav__link, .footer__wordmark, .notfound__link").forEach(function (n) {
+  doc.querySelectorAll(".menu__link, .footer__wordmark, .notfound__link").forEach(function (n) {
     n.addEventListener("click", function () { glitchText(n); });
     if (canHover) n.addEventListener("mouseenter", function () { glitchText(n); });
   });
@@ -894,10 +936,13 @@
     feed.querySelectorAll(".rise").forEach(function (n) { n.classList.add("is-in"); });
   }
 
-  /* ---- 8. PHONE (white iPhone 5c) ----------------------------------- */
+  /* ---- 8. PHONE (silver iPhone 5) ----------------------------------
+     3D view from phone3d.js (Three.js) while spinning; tap → the CSS
+     phone takes over, zoomed in, and you are "inside" the screen.      */
   var phone = doc.getElementById("phone");
   if (phone) {
     var stage = doc.getElementById("phone-stage");
+    var holder3d = doc.getElementById("stage-3d");
     var screen = doc.getElementById("screen");
     var appLock = doc.getElementById("app-lock");
     var appHome = doc.getElementById("app-home");
@@ -906,85 +951,109 @@
     var appTitle = doc.getElementById("app-title");
     var spinBtn = doc.getElementById("phone-spin");
     var resetBtn = doc.getElementById("phone-reset");
+    var hint = doc.getElementById("phone-hint");
     var phoneCfg = settings.phone || {};
     var ry = -28, rx = 6, spinning = phoneCfg.spin !== false && !reduceMotion, using = false, dragging = false;
-    var dragX = 0, dragY = 0, startRy = 0, startRx = 0, moved = false;
+    var dragX = 0, dragY = 0, startRy = 0, startRx = 0, moved = false, three = null;
 
     function setRot() {
       phone.style.setProperty("--ry", ry.toFixed(2) + "deg");
       phone.style.setProperty("--rx", rx.toFixed(2) + "deg");
     }
 
-    // clock
+    // clock (also drawn on the 3D screen)
     function pad2(n) { return (n < 10 ? "0" : "") + n; }
+    var timeStr = "", dateStr = "";
     function clock() {
       var d = new Date();
-      var t = pad2(d.getHours()) + ":" + pad2(d.getMinutes());
-      doc.getElementById("screen-time").textContent = t;
-      doc.getElementById("lock-time").textContent = t;
-      doc.getElementById("lock-date").textContent = d.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" }).toLowerCase();
+      timeStr = pad2(d.getHours()) + ":" + pad2(d.getMinutes());
+      dateStr = d.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" }).toLowerCase();
+      doc.getElementById("screen-time").textContent = timeStr;
+      doc.getElementById("lock-time").textContent = timeStr;
+      doc.getElementById("lock-date").textContent = dateStr;
+      if (three) three.drawScreen(timeStr, dateStr, "tap to use");
     }
     clock(); setInterval(clock, 15000);
 
-    // spin loop
+    // CSS spin loop (fallback when there is no 3D)
     (function spin() {
-      if (spinning && !dragging && !using) { ry += 0.35; if (ry > 180) ry -= 360; setRot(); }
+      if (!three && spinning && !dragging && !using) { ry += 0.35; if (ry > 180) ry -= 360; setRot(); }
       requestAnimationFrame(spin);
     })();
     setRot();
 
-    // drag to rotate
+    // try the 3D engine; fall back to the CSS phone if anything fails
+    var canWebGL = (function () { try { var c = doc.createElement("canvas"); return !!(window.WebGLRenderingContext && (c.getContext("webgl2") || c.getContext("webgl"))); } catch (e) { return false; } })();
+    if (holder3d && canWebGL && !reduceMotion && typeof window.HTMLScriptElement !== "undefined" && HTMLScriptElement.supports && HTMLScriptElement.supports("importmap")) {
+      import("/js/phone3d.js").then(function (mod) {
+        three = mod.createPhone(holder3d, { spin: spinning });
+        if (!three) return;
+        stage.classList.add("has-3d");
+        three.drawScreen(timeStr, dateStr, "tap to use");
+        window.BV.phone3d = three;
+      }).catch(function (err) { if (window.console) console.warn("3D phone unavailable, using CSS phone", err); });
+    }
+
+    // drag to rotate (both views); a tap (no movement) starts using the phone
     stage.addEventListener("pointerdown", function (e) {
       if (using) return;
       dragging = true; moved = false;
       dragX = e.clientX; dragY = e.clientY; startRy = ry; startRx = rx;
-      phone.classList.add("is-dragging");
-      stage.setPointerCapture && stage.setPointerCapture(e.pointerId);
+      stage.classList.add("is-dragging");
+      if (three) three.setDragging(true);
+      try { stage.setPointerCapture(e.pointerId); } catch (err) {}
     });
     stage.addEventListener("pointermove", function (e) {
       if (!dragging) return;
       var dx = e.clientX - dragX, dy = e.clientY - dragY;
-      if (Math.abs(dx) + Math.abs(dy) > 4) moved = true;
-      ry = startRy + dx * 0.5; rx = Math.max(-40, Math.min(40, startRx - dy * 0.3));
-      setRot();
+      if (Math.abs(dx) + Math.abs(dy) > 5) moved = true;
+      if (three) { three.drag(e.movementX || 0, e.movementY || 0); }
+      else { ry = startRy + dx * 0.5; rx = Math.max(-40, Math.min(40, startRx - dy * 0.3)); setRot(); }
     });
-    function endDrag(e) {
+    function endDrag() {
       if (!dragging) return;
       dragging = false;
-      phone.classList.remove("is-dragging");
-      if (!moved && e.target.closest && e.target.closest(".phone")) use();   // a tap, not a drag
+      stage.classList.remove("is-dragging");
+      if (three) three.setDragging(false);
+      if (!moved) use();                               // a tap anywhere on the stage opens the phone
     }
     stage.addEventListener("pointerup", endDrag);
     stage.addEventListener("pointercancel", endDrag);
 
     function use() {
+      if (using) return;
       using = true;
       ry = 0; rx = 0; setRot();
-      phone.style.setProperty("--zoom", "1.15");
-      phone.classList.add("is-using");
+      if (three) three.faceFront();
+      stage.classList.add("is-using");
       spinBtn.setAttribute("aria-pressed", "false");
+      if (hint) hint.textContent = "you are in the phone · press the home button or “let go” to come out";
+      show(appHome);
+      stage.scrollIntoView({ block: "center", behavior: reduceMotion ? "auto" : "smooth" });
     }
     function letGo() {
       using = false;
-      phone.style.setProperty("--zoom", "1");
-      phone.classList.remove("is-using");
-      rx = 6; setRot();
+      stage.classList.remove("is-using");
+      rx = 6; ry = -28; setRot();
+      if (three) three.release(spinning);
+      if (hint) hint.textContent = "drag to spin · tap the phone to use it";
+      show(appLock);
     }
     spinBtn.addEventListener("click", function () {
       spinning = !spinning;
       spinBtn.setAttribute("aria-pressed", spinning ? "true" : "false");
+      if (three) three.setSpin(spinning && !using);
       if (spinning && using) letGo();
     });
     resetBtn.addEventListener("click", letGo);
 
-    // screens
     function show(section) {
       [appLock, appHome, appView].forEach(function (sct) { sct.hidden = sct !== section; sct.classList.toggle("is-active", sct === section); });
     }
-    doc.getElementById("unlock").addEventListener("click", function () { use(); show(appHome); });
-    doc.getElementById("home-button").addEventListener("click", function () { show(appHome); });
+    doc.getElementById("unlock").addEventListener("click", function () { use(); });
+    doc.getElementById("home-button").addEventListener("click", function () { if (!using) use(); else show(appHome); });
     doc.getElementById("app-back").addEventListener("click", function () { show(appHome); });
-    // while the phone is in use, the screen handles its own taps (not the drag)
+    // once in use the screen handles its own taps, not the stage drag
     screen.addEventListener("pointerdown", function (e) { if (using) e.stopPropagation(); });
     doc.getElementById("home-button").addEventListener("pointerdown", function (e) { if (using) e.stopPropagation(); });
 
@@ -992,7 +1061,6 @@
     projects.forEach(function (p) { if (p.still) stills.push({ file: p.still, label: label(p) }); });
     posts.forEach(function (p) { if (p.type === "photo") (p.photos || []).forEach(function (f) { if (!stills.some(function (x) { return x.file === f; })) stills.push({ file: f, label: p.caption || "" }); }); });
 
-    // every app on the phone: a name, an icon, and what it shows
     var APPS = [
       { id: "camera", name: "camera", icon: "camera", render: function (box) {
         box.appendChild(el("p", { "class": "app__text", text: stills.length ? "camera roll · " + stills.length : "no photos yet" }));
@@ -1028,8 +1096,8 @@
       { id: "contacts", name: "contacts", icon: "contacts", render: function (box) {
         (settings.socials || []).forEach(function (sm) {
           var row = el("a", { "class": "app__row", href: sm.url, target: "_blank", rel: "noopener" });
-          row.innerHTML = icon(sm.id, "icon") ;
-          row.querySelector("svg").style.width = "1.2em"; row.querySelector("svg").style.height = "1.2em"; row.querySelector("svg").style.fill = "#fff";
+          row.innerHTML = icon(sm.id, "icon");
+          var sv = row.querySelector("svg"); sv.style.width = "1.2em"; sv.style.height = "1.2em"; sv.style.fill = "#fff";
           row.appendChild(el("span", { text: sm.id }));
           row.appendChild(el("small", { text: "open" }));
           box.appendChild(row);
@@ -1054,7 +1122,7 @@
           box.appendChild(b);
         });
       } },
-      { id: "blog", name: "blog", icon: "blog", href: "/blog" },
+      { id: "blog", name: "tumblr", icon: "blog", href: "/blog" },
       { id: "work", name: "work", icon: "work", href: "/" }
     ];
     var DOCK = ["videos", "contacts", "messages", "blog"];
@@ -1077,7 +1145,94 @@
     APPS.forEach(function (app) { if (DOCK.indexOf(app.id) === -1) homeGrid.appendChild(appButton(app)); });
     DOCK.forEach(function (id) { var app = APPS.filter(function (a) { return a.id === id; })[0]; if (app) homeDock.appendChild(appButton(app)); });
 
-    window.BV.phone = { use: use, letGo: letGo, open: function (id) { var app = APPS.filter(function (a) { return a.id === id; })[0]; if (app && app.render) { use(); openApp(app); } }, unlock: function () { use(); show(appHome); } };
+    window.BV.phone = { use: use, letGo: letGo, open: function (id) { var app = APPS.filter(function (a) { return a.id === id; })[0]; if (app && app.render) { use(); openApp(app); } }, isUsing: function () { return using; } };
+  }
+
+  /* ---- 9. FRIED extras (tumblr page) ------------------------------- */
+  if (doc.body.classList.contains("theme-fried")) {
+    var mq = doc.getElementById("marquee-text");
+    if (mq) mq.textContent = (settings.marquee || "") + " " + (settings.marquee || "");
+    var meta = doc.getElementById("fried-meta");
+    if (meta) {
+      var visits = 0;
+      try { visits = (parseInt(localStorage.getItem("bv-visits") || "0", 10) || 0) + 1; localStorage.setItem("bv-visits", String(visits)); } catch (e) { visits = 1; }
+      var newest = posts.map(function (p) { return p.date; }).sort().pop() || "";
+      meta.innerHTML = "you are visitor <b>" + String(visits).padStart(6, "0") + "</b> (to this browser) · last updated " + newest + " · best viewed on a cracked screen";
+    }
+    // wrap every post in a window with working buttons
+    var feedEl = doc.getElementById("blog-feed");
+    if (feedEl) {
+      Array.prototype.slice.call(feedEl.querySelectorAll(".post")).forEach(function (post, i) {
+        var win = el("div", { "class": "win" });
+        win.style.setProperty("--tilt", ((i % 2 ? 1 : -1) * (0.4 + Math.random() * 1.2)).toFixed(2) + "deg");
+        var bar = el("div", { "class": "win__bar" });
+        bar.innerHTML = "<b>post_" + String(i + 1).padStart(3, "0") + "</b> — " + post.className.match(/post--(\w+)/)[1];
+        var btns = el("span", { "class": "win__btns" });
+        var mn = el("button", { "class": "win__btn", type: "button", "aria-label": "Minimise", text: "_" });
+        var mx = el("button", { "class": "win__btn", type: "button", "aria-label": "Maximise", text: "□" });
+        var cl = el("button", { "class": "win__btn", type: "button", "aria-label": "Close", text: "×" });
+        var body = el("div", { "class": "win__body" });
+        mn.addEventListener("click", function () { body.hidden = !body.hidden; });
+        mx.addEventListener("click", function () { win.classList.toggle("win--max"); win.style.setProperty("--tilt", win.classList.contains("win--max") ? "0deg" : win.getAttribute("data-tilt")); });
+        cl.addEventListener("click", function () { win.hidden = true; doc.getElementById("fried-restore").hidden = false; });
+        win.setAttribute("data-tilt", win.style.getPropertyValue("--tilt"));
+        btns.appendChild(mn); btns.appendChild(mx); btns.appendChild(cl); bar.appendChild(btns);
+        post.parentNode.insertBefore(win, post);
+        body.appendChild(post);
+        win.appendChild(bar); win.appendChild(body);
+      });
+      var restore = doc.getElementById("restore-windows");
+      if (restore) restore.addEventListener("click", function () { feedEl.querySelectorAll(".win").forEach(function (w) { w.hidden = false; }); doc.getElementById("fried-restore").hidden = true; });
+    }
+    // sidebar as windows
+    var sideEl = doc.getElementById("blog-side");
+    if (sideEl) {
+      sideEl.innerHTML = "";
+      function winBox(title, fill) {
+        var w = el("div", { "class": "win" }); w.style.setProperty("--tilt", ((Math.random() - 0.5) * 2).toFixed(2) + "deg");
+        var bar = el("div", { "class": "win__bar" }); bar.innerHTML = "<b>" + title + "</b>";
+        var body = el("div", { "class": "win__body" }); fill(body);
+        w.appendChild(bar); w.appendChild(body); return w;
+      }
+      sideEl.appendChild(winBox("about.txt", function (b) {
+        b.appendChild(el("div", { "class": "fried__avatar", "aria-hidden": "true", text: "BV" }));
+        b.appendChild(el("p", { text: (settings.blogDescription || "") }));
+        var ul = el("ul", { "class": "fried__list" });
+        (settings.socials || []).forEach(function (sm) { var li = el("li"); li.appendChild(el("a", { href: sm.url, target: "_blank", rel: "noopener", text: sm.id })); ul.appendChild(li); });
+        b.appendChild(ul);
+        b.appendChild(el("div", { "class": "fried__construction", html: "<span>under construction</span>" }));
+      }));
+      sideEl.appendChild(winBox("guestbook.exe", function (b) {
+        var ig = (settings.socials || []).filter(function (x) { return x.id === "instagram"; })[0];
+        b.appendChild(el("p", { text: "sign my guestbook:" }));
+        if (ig) b.appendChild(el("a", { href: ig.url, target: "_blank", rel: "noopener", text: "→ dm on instagram" }));
+      }));
+      sideEl.appendChild(winBox("tags.db", function (b) {
+        var counts = {}; posts.forEach(function (p) { (p.tags || []).forEach(function (t) { counts[t] = (counts[t] || 0) + 1; }); });
+        var ul = el("ul", { "class": "fried__list" });
+        Object.keys(counts).forEach(function (t) { var li = el("li"); li.appendChild(el("a", { href: "/blog#tag-" + encodeURIComponent(t), "data-tag": t, text: "#" + t + " (" + counts[t] + ")" })); ul.appendChild(li); });
+        if (!Object.keys(counts).length) ul.appendChild(el("li", { text: "no tags yet" }));
+        b.appendChild(ul);
+      }));
+      sideEl.appendChild(winBox("counter.cgi", function (b) {
+        b.appendChild(el("span", { "class": "fried__counter", text: String(posts.length).padStart(6, "0") }));
+        b.appendChild(el("p", { text: " posts and counting" }));
+      }));
+    }
+    // stickers
+    var stickerBox = doc.getElementById("stickers");
+    if (stickerBox && Array.isArray(settings.stickers) && !reduceMotion) {
+      settings.stickers.forEach(function (txt, i) {
+        var isEmoji = /^[^\w\s]+$/.test(txt) && txt.length <= 2;
+        var cls = "sticker" + (isEmoji ? " sticker--emoji" : (i % 3 === 0 ? " sticker--box" : ""));
+        var st = el("span", { "class": cls, text: txt });
+        st.style.setProperty("--x", rnd(2, 92).toFixed(1) + "%");
+        st.style.setProperty("--y", rnd(4, 96).toFixed(1) + "%");
+        st.style.setProperty("--r", rnd(-25, 25).toFixed(0) + "deg");
+        st.style.setProperty("--s", rnd(0.8, 1.6).toFixed(2));
+        stickerBox.appendChild(st);
+      });
+    }
   }
 
   doc.addEventListener("visibilitychange", function () { if (doc.hidden) stopAllPreviews(); });

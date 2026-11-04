@@ -35,6 +35,25 @@
    ===================================================================== */
 
 const SETTINGS = {
+  // The menu, in order. Shown on every page.
+  nav: [
+    { label: "work",    href: "/#work" },
+    { label: "blog",    href: "/blog" },
+    { label: "phone",   href: "/phone" },
+    { label: "contact", href: "#contact" },
+  ],
+  // The only contact routes. Order = order on the page.
+  socials: [
+    { id: "instagram", label: "BLONDVIRGO on Instagram", url: "https://www.instagram.com/arussuuuu/" },
+    { id: "youtube",   label: "BLONDVIRGO on YouTube",   url: "https://www.youtube.com/@blondvirgo" },
+    { id: "vimeo",     label: "BLONDVIRGO on Vimeo",     url: "https://vimeo.com/blondvirgo" },
+    { id: "linkedin",  label: "Alex Rusu on LinkedIn",   url: "https://www.linkedin.com/in/alex-c-rusu" },
+  ],
+  blogDescription: "music video director · bristol, uk",   // [CHECK: shown in the blog sidebar]
+  phone: {
+    spin: true,           // the phone turns by itself until someone uses it
+  },
+
   grain: true,            // film grain over the page. false = off
   scanlines: true,        // faint VHS lines over the page. false = off
   director: "ALEX RUSU",

@@ -75,6 +75,79 @@
 
   var PLAY_SVG = '<svg class="tile__play" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 3l15 9-15 9z"/></svg>';
 
+  /* ---- 0. shared chrome: menu, social icons, footer ------------------
+     Defined ONCE here and in SETTINGS; every page gets the same ones.  */
+  var ICONS = {
+    instagram: '<path fill-rule="evenodd" d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm0 2a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3H7zm5 3.3a4.7 4.7 0 1 1 0 9.4 4.7 4.7 0 0 1 0-9.4zm0 2a2.7 2.7 0 1 0 0 5.4 2.7 2.7 0 0 0 0-5.4zm5.2-3.4a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2z"/>',
+    youtube: '<path fill-rule="evenodd" d="M21.6 7.2a2.5 2.5 0 0 0-1.8-1.8C18.3 5 12 5 12 5s-6.3 0-7.8.4A2.5 2.5 0 0 0 2.4 7.2 26 26 0 0 0 2 12a26 26 0 0 0 .4 4.8 2.5 2.5 0 0 0 1.8 1.8C5.7 19 12 19 12 19s6.3 0 7.8-.4a2.5 2.5 0 0 0 1.8-1.8A26 26 0 0 0 22 12a26 26 0 0 0-.4-4.8zM10 15V9l5.2 3L10 15z"/>',
+    vimeo: '<path d="M23.977 6.416c-.105 2.338-1.739 5.543-4.894 9.609-3.268 4.247-6.026 6.37-8.29 6.37-1.409 0-2.578-1.294-3.553-3.881L5.322 11.4C4.603 8.816 3.834 7.522 3.01 7.522c-.179 0-.806.378-1.881 1.132L0 7.197a315.065 315.065 0 0 0 3.501-3.128C5.08 2.701 6.266 1.984 7.055 1.91c1.867-.18 3.016 1.1 3.447 3.838.465 2.953.789 4.789.971 5.507.539 2.45 1.131 3.674 1.776 3.674.502 0 1.256-.796 2.265-2.385 1.004-1.589 1.54-2.797 1.612-3.628.144-1.371-.395-2.061-1.614-2.061-.574 0-1.167.121-1.777.391 1.186-3.868 3.434-5.757 6.762-5.637 2.473.06 3.628 1.664 3.493 4.797l-.013.01z"/>',
+    linkedin: '<path fill-rule="evenodd" d="M22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0zM7.12 20.45H3.56V9h3.56v11.45zM5.34 7.43a2.07 2.07 0 1 1 0-4.13 2.07 2.07 0 0 1 0 4.13zm15.11 13.02h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28z"/>',
+    // post + app glyphs
+    text: '<path d="M3 4h18v2H3zm0 5h18v2H3zm0 5h12v2H3z"/>',
+    photo: '<path d="M3 4h18v16H3zm2 2v9l4-4 4 4 3-3 3 3V6zm11 2a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3z"/>',
+    video: '<path d="M3 5h12v4l6-3v12l-6-3v4H3z"/>',
+    audio: '<path d="M14 3v12.3a3.5 3.5 0 1 1-2-3.2V7l-5 1.5v8.8a3.5 3.5 0 1 1-2-3.2V6z"/>',
+    quote: '<path d="M6 7h5v5l-2 5H6l2-5H6zm8 0h5v5l-2 5h-3l2-5h-2z"/>',
+    link: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1 1.4 1.4 1-1a2 2 0 0 1 2.9 2.9l-3 3a2 2 0 0 1-2.9 0zm4-4a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1-1.4-1.4-1 1a2 2 0 0 1-2.9-2.9l3-3a2 2 0 0 1 2.9 0z"/>',
+    chat: '<path d="M3 4h18v11H8l-5 4z"/>',
+    camera: '<path d="M9 4h6l1.5 2H20v13H4V6h3.5zM12 9a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z"/>',
+    contacts: '<path d="M12 3a4 4 0 1 1 0 8 4 4 0 0 1 0-8zm-8 18c0-4 3.6-7 8-7s8 3 8 7z"/>',
+    messages: '<path d="M12 3c5 0 9 3.2 9 7.2S17 17.4 12 17.4c-.8 0-1.6-.1-2.3-.2L5 20l1.2-3.4C4.2 15.3 3 13.4 3 10.2 3 6.2 7 3 12 3z"/>',
+    notes: '<path d="M5 3h14v18H5zm2 5h10v1.5H7zm0 3h10v1.5H7zm0 3h7v1.5H7z"/>',
+    settings: '<path d="M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8zm-1.5-6h3l.5 2.5 1.8.8 2.2-1.4 2.1 2.1-1.4 2.2.8 1.8 2.5.5v3l-2.5.5-.8 1.8 1.4 2.2-2.1 2.1-2.2-1.4-1.8.8-.5 2.5h-3l-.5-2.5-1.8-.8-2.2 1.4-2.1-2.1 1.4-2.2-.8-1.8L2 13.5v-3l2.5-.5.8-1.8-1.4-2.2 2.1-2.1 2.2 1.4 1.8-.8z"/>',
+    blog: '<path d="M4 4h16v12H9l-5 4zm3 3v2h10V7zm0 4v2h7v-2z"/>',
+    work: '<path d="M4 6h16v12H4zm3 2v8l7-4z"/>',
+    phone: '<path d="M7 2h10v20H7zm2 2v14h6V4zm3 15a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>'
+  };
+
+  function icon(name, cls) {
+    return '<svg class="' + (cls || "icon") + '" viewBox="0 0 24 24" aria-hidden="true" focusable="false">' + (ICONS[name] || "") + '</svg>';
+  }
+
+  var page = doc.body.getAttribute("data-page") || "";
+
+  // the menu
+  var navEl = doc.getElementById("nav");
+  if (navEl && Array.isArray(settings.nav)) {
+    settings.nav.forEach(function (item) {
+      var href = item.href;
+      // "#contact" / "#work" on another page go back to the homepage
+      if (href.charAt(0) === "#" && page !== "work") href = "/" + href;
+      var a = el("a", { "class": "nav__link", href: href, text: item.label });
+      var isCurrent = (item.label === page) || (page === "work" && item.href === "/#work");
+      if (isCurrent) a.setAttribute("aria-current", "page");
+      navEl.appendChild(a);
+    });
+  }
+
+  // social icon rows
+  function socialsInto(ul) {
+    (settings.socials || []).forEach(function (sm) {
+      var li = el("li");
+      var a = el("a", {
+        "class": "socials__link", href: sm.url, target: "_blank", rel: "noopener",
+        "aria-label": sm.label + " (opens in a new tab)"
+      });
+      a.innerHTML = icon(sm.id);
+      li.appendChild(a); ul.appendChild(li);
+    });
+  }
+  doc.querySelectorAll("[data-socials]").forEach(socialsInto);
+
+  // the footer
+  var footerEl = doc.querySelector("[data-footer]");
+  if (footerEl) {
+    footerEl.appendChild(el("button", {
+      "class": "footer__wordmark", id: "negative-toggle", type: "button", "aria-pressed": "false",
+      "aria-label": "BLONDVIRGO. Switch negative mode on or off", text: WORDMARK
+    }));
+    var ul = el("ul", { "class": "socials", "aria-label": "Contact BLONDVIRGO on social media" });
+    socialsInto(ul);
+    footerEl.appendChild(ul);
+    footerEl.appendChild(el("p", { "class": "footer__copy", text: "© 2026 alex rusu / blondvirgo" }));
+  }
+
+
   /* ---- 1. build the grid ------------------------------------------- */
   var grid = doc.getElementById("work-grid");
 
@@ -667,6 +740,344 @@
       if (player.hidden) return;
       if (!player.contains(e.target)) closeBtn.focus();
     });
+  }
+
+
+  /* ---- 7. BLOG (tumblr-style) --------------------------------------- */
+  var feed = doc.getElementById("blog-feed");
+  var posts = (typeof POSTS !== "undefined" && Array.isArray(POSTS)) ? POSTS.filter(function (x) { return x && x.published !== false; }) : [];
+
+  function ago(dateStr) {
+    var d = new Date(dateStr + "T00:00:00");
+    var days = Math.floor((Date.now() - d.getTime()) / 86400000);
+    if (isNaN(days)) return "";
+    if (days <= 0) return "today";
+    if (days === 1) return "yesterday";
+    if (days < 30) return days + " days ago";
+    var months = Math.floor(days / 30);
+    if (months < 12) return months + (months === 1 ? " month ago" : " months ago");
+    var years = Math.floor(days / 365);
+    return years + (years === 1 ? " year ago" : " years ago");
+  }
+
+  function projectByTitle(title) {
+    return projects.filter(function (p) { return p.title === title; })[0];
+  }
+
+  function paragraphs(text) {
+    var box = el("div", { "class": "post__body" });
+    String(text || "").split(/\n\s*\n/).forEach(function (para) {
+      if (para.trim()) box.appendChild(el("p", { text: para.trim() }));
+    });
+    return box;
+  }
+
+  function buildPost(post, i) {
+    var art = el("article", { "class": "post post--" + post.type + " rise", id: "post-" + (i + 1) });
+    art.style.setProperty("--i", "0");
+
+    var head = el("div", { "class": "post__head" });
+    head.innerHTML = icon(post.type, "post__type");
+    head.appendChild(el("span", { "class": "post__date", text: post.date || "" }));
+    head.appendChild(el("span", { "class": "post__ago", text: ago(post.date) }));
+    art.appendChild(head);
+
+    if (post.type === "text") {
+      if (post.title) art.appendChild(el("h3", { "class": "post__title", text: post.title }));
+      art.appendChild(paragraphs(post.body));
+    } else if (post.type === "photo") {
+      var grid = el("div", { "class": "post__photos", "data-n": String(Math.min(6, (post.photos || []).length)) });
+      (post.photos || []).forEach(function (file) {
+        var a = el("a", { "class": "post__photo-link", href: "/images/" + file, target: "_blank", rel: "noopener" });
+        a.appendChild(el("img", { "class": "post__photo", src: "/images/" + file, alt: (post.caption || "photo") + ", still", loading: i < 2 ? "eager" : "lazy", decoding: "async" }));
+        grid.appendChild(a);
+      });
+      art.appendChild(grid);
+      if (post.caption) art.appendChild(el("p", { "class": "post__caption", text: post.caption }));
+    } else if (post.type === "video") {
+      var p = projectByTitle(post.project);
+      if (p) {
+        var idx = projects.indexOf(p);
+        var tile = buildTile(p, idx);
+        tile.classList.remove("rise");
+        tile.classList.add("post__video");
+        var meta = tile.querySelector(".tile__meta"); if (meta) meta.remove();   // the caption does the job here
+        art.appendChild(tile);
+        tile.querySelector(".tile__link").addEventListener("click", function (e) {
+          if (e.metaKey || e.ctrlKey || e.shiftKey) return;
+          e.preventDefault(); openPlayer(idx);
+        });
+      }
+      if (post.caption) art.appendChild(el("p", { "class": "post__caption", text: post.caption }));
+    } else if (post.type === "audio") {
+      var audio = el("audio", { "class": "post__audio", controls: "", preload: "none", src: "/audio/" + post.file });
+      art.appendChild(audio);
+      if (post.caption) art.appendChild(el("p", { "class": "post__caption", text: post.caption }));
+    } else if (post.type === "quote") {
+      art.appendChild(el("blockquote", { "class": "post__quote", text: post.quote || "" }));
+      if (post.source) art.appendChild(el("p", { "class": "post__source", text: post.source }));
+    } else if (post.type === "link") {
+      var host = "";
+      try { host = new URL(post.url).hostname.replace(/^www\./, ""); } catch (e) {}
+      var a2 = el("a", { "class": "post__link", href: post.url, target: "_blank", rel: "noopener" }, [
+        el("span", { "class": "post__link-title", text: post.title || post.url }),
+        post.description ? el("span", { "class": "post__link-desc", text: post.description }) : null,
+        el("span", { "class": "post__link-host", text: host })
+      ]);
+      a2.style.display = "block";
+      a2.querySelectorAll("span").forEach(function (sp) { sp.style.display = "block"; });
+      art.appendChild(a2);
+    } else if (post.type === "chat") {
+      if (post.title) art.appendChild(el("h3", { "class": "post__title", text: post.title }));
+      var dl = el("dl", { "class": "post__chat" });
+      (post.lines || []).forEach(function (line) {
+        var m = /^([^:]+):\s*(.*)$/.exec(line);
+        dl.appendChild(el("dt", { text: m ? m[1] : "" }));
+        dl.appendChild(el("dd", { text: m ? m[2] : line }));
+      });
+      art.appendChild(dl);
+    }
+
+    var foot = el("div", { "class": "post__foot" });
+    (post.tags || []).forEach(function (t) { foot.appendChild(el("a", { href: "/blog#tag-" + encodeURIComponent(t), "data-tag": t, text: "#" + t })); });
+    var share = el("button", { "class": "post__share", type: "button", text: "share" });
+    share.addEventListener("click", function () {
+      var url = location.origin + "/blog#post-" + (i + 1);
+      if (navigator.clipboard) navigator.clipboard.writeText(url).then(function () { share.textContent = "link copied"; setTimeout(function () { share.textContent = "share"; }, 1500); });
+    });
+    foot.appendChild(share);
+    art.appendChild(foot);
+    return art;
+  }
+
+  if (feed) {
+    if (!posts.length) {
+      feed.appendChild(el("p", { "class": "blog__empty", text: "nothing posted yet." }));
+    } else {
+      posts.forEach(function (post, i) { feed.appendChild(buildPost(post, i)); });
+    }
+    // sidebar
+    var side = doc.getElementById("blog-side");
+    if (side) {
+      side.appendChild(el("div", { "class": "blog__avatar", "aria-hidden": "true", text: "BV" }));
+      side.appendChild(el("p", { "class": "blog__name", text: WORDMARK.toLowerCase() }));
+      if (settings.blogDescription) side.appendChild(el("p", { "class": "blog__desc", text: settings.blogDescription }));
+      var ig = (settings.socials || []).filter(function (x) { return x.id === "instagram"; })[0];
+      if (ig) { var ask = el("p"); ask.appendChild(el("a", { href: ig.url, target: "_blank", rel: "noopener", text: "ask me anything (instagram dm)" })); side.appendChild(ask); }
+      var counts = {};
+      posts.forEach(function (p) { (p.tags || []).forEach(function (t) { counts[t] = (counts[t] || 0) + 1; }); });
+      var tags = Object.keys(counts);
+      if (tags.length) {
+        var tagBox = el("div", { "class": "blog__tags" });
+        tags.forEach(function (t) {
+          var a = el("a", { "class": "blog__tag", href: "/blog#tag-" + encodeURIComponent(t), "data-tag": t, text: "#" + t });
+          a.appendChild(el("span", { "class": "blog__count", text: " " + counts[t] }));
+          tagBox.appendChild(a);
+        });
+        side.appendChild(tagBox);
+      }
+      side.appendChild(el("p", { "class": "blog__count", text: posts.length + (posts.length === 1 ? " post" : " posts") }));
+    }
+    // tag filter: clicking a tag shows only those posts; click again to clear
+    doc.addEventListener("click", function (e) {
+      var t = e.target.closest("[data-tag]");
+      if (!t) return;
+      e.preventDefault();
+      var tag = t.getAttribute("data-tag");
+      var active = feed.getAttribute("data-tag") === tag ? "" : tag;
+      feed.setAttribute("data-tag", active);
+      feed.querySelectorAll(".post").forEach(function (art, i) {
+        var has = !active || (posts[i].tags || []).indexOf(active) !== -1;
+        art.hidden = !has;
+      });
+    });
+    feed.querySelectorAll(".rise").forEach(function (n) { n.classList.add("is-in"); });
+  }
+
+  /* ---- 8. PHONE (white iPhone 5c) ----------------------------------- */
+  var phone = doc.getElementById("phone");
+  if (phone) {
+    var stage = doc.getElementById("phone-stage");
+    var screen = doc.getElementById("screen");
+    var appLock = doc.getElementById("app-lock");
+    var appHome = doc.getElementById("app-home");
+    var appView = doc.getElementById("app-view");
+    var appBody = doc.getElementById("app-body");
+    var appTitle = doc.getElementById("app-title");
+    var spinBtn = doc.getElementById("phone-spin");
+    var resetBtn = doc.getElementById("phone-reset");
+    var phoneCfg = settings.phone || {};
+    var ry = -28, rx = 6, spinning = phoneCfg.spin !== false && !reduceMotion, using = false, dragging = false;
+    var dragX = 0, dragY = 0, startRy = 0, startRx = 0, moved = false;
+
+    function setRot() {
+      phone.style.setProperty("--ry", ry.toFixed(2) + "deg");
+      phone.style.setProperty("--rx", rx.toFixed(2) + "deg");
+    }
+
+    // clock
+    function pad2(n) { return (n < 10 ? "0" : "") + n; }
+    function clock() {
+      var d = new Date();
+      var t = pad2(d.getHours()) + ":" + pad2(d.getMinutes());
+      doc.getElementById("screen-time").textContent = t;
+      doc.getElementById("lock-time").textContent = t;
+      doc.getElementById("lock-date").textContent = d.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" }).toLowerCase();
+    }
+    clock(); setInterval(clock, 15000);
+
+    // spin loop
+    (function spin() {
+      if (spinning && !dragging && !using) { ry += 0.35; if (ry > 180) ry -= 360; setRot(); }
+      requestAnimationFrame(spin);
+    })();
+    setRot();
+
+    // drag to rotate
+    stage.addEventListener("pointerdown", function (e) {
+      if (using) return;
+      dragging = true; moved = false;
+      dragX = e.clientX; dragY = e.clientY; startRy = ry; startRx = rx;
+      phone.classList.add("is-dragging");
+      stage.setPointerCapture && stage.setPointerCapture(e.pointerId);
+    });
+    stage.addEventListener("pointermove", function (e) {
+      if (!dragging) return;
+      var dx = e.clientX - dragX, dy = e.clientY - dragY;
+      if (Math.abs(dx) + Math.abs(dy) > 4) moved = true;
+      ry = startRy + dx * 0.5; rx = Math.max(-40, Math.min(40, startRx - dy * 0.3));
+      setRot();
+    });
+    function endDrag(e) {
+      if (!dragging) return;
+      dragging = false;
+      phone.classList.remove("is-dragging");
+      if (!moved && e.target.closest && e.target.closest(".phone")) use();   // a tap, not a drag
+    }
+    stage.addEventListener("pointerup", endDrag);
+    stage.addEventListener("pointercancel", endDrag);
+
+    function use() {
+      using = true;
+      ry = 0; rx = 0; setRot();
+      phone.style.setProperty("--zoom", "1.15");
+      phone.classList.add("is-using");
+      spinBtn.setAttribute("aria-pressed", "false");
+    }
+    function letGo() {
+      using = false;
+      phone.style.setProperty("--zoom", "1");
+      phone.classList.remove("is-using");
+      rx = 6; setRot();
+    }
+    spinBtn.addEventListener("click", function () {
+      spinning = !spinning;
+      spinBtn.setAttribute("aria-pressed", spinning ? "true" : "false");
+      if (spinning && using) letGo();
+    });
+    resetBtn.addEventListener("click", letGo);
+
+    // screens
+    function show(section) {
+      [appLock, appHome, appView].forEach(function (sct) { sct.hidden = sct !== section; sct.classList.toggle("is-active", sct === section); });
+    }
+    doc.getElementById("unlock").addEventListener("click", function () { use(); show(appHome); });
+    doc.getElementById("home-button").addEventListener("click", function () { show(appHome); });
+    doc.getElementById("app-back").addEventListener("click", function () { show(appHome); });
+    // while the phone is in use, the screen handles its own taps (not the drag)
+    screen.addEventListener("pointerdown", function (e) { if (using) e.stopPropagation(); });
+    doc.getElementById("home-button").addEventListener("pointerdown", function (e) { if (using) e.stopPropagation(); });
+
+    var stills = [];
+    projects.forEach(function (p) { if (p.still) stills.push({ file: p.still, label: label(p) }); });
+    posts.forEach(function (p) { if (p.type === "photo") (p.photos || []).forEach(function (f) { if (!stills.some(function (x) { return x.file === f; })) stills.push({ file: f, label: p.caption || "" }); }); });
+
+    // every app on the phone: a name, an icon, and what it shows
+    var APPS = [
+      { id: "camera", name: "camera", icon: "camera", render: function (box) {
+        box.appendChild(el("p", { "class": "app__text", text: stills.length ? "camera roll · " + stills.length : "no photos yet" }));
+        var g = el("div", { "class": "app__grid" });
+        stills.forEach(function (st) {
+          var a = el("a", { href: "/images/" + st.file, target: "_blank", rel: "noopener" });
+          a.appendChild(el("img", { src: "/images/" + st.file, alt: st.label, loading: "lazy" }));
+          g.appendChild(a);
+        });
+        box.appendChild(g);
+      } },
+      { id: "photos", name: "photos", icon: "photo", render: function (box) { APPS[0].render(box); } },
+      { id: "videos", name: "videos", icon: "video", render: function (box) {
+        if (!projects.length) box.appendChild(el("p", { "class": "app__text", text: "no videos yet" }));
+        projects.forEach(function (p, i) {
+          var row = el("button", { "class": "app__row", type: "button" });
+          if (p.still) row.appendChild(el("img", { src: "/images/" + p.still, alt: "" }));
+          row.appendChild(el("span", { text: label(p) }));
+          row.appendChild(el("small", { text: String(p.year) }));
+          row.addEventListener("click", function () { openPlayer(i); });
+          box.appendChild(row);
+        });
+      } },
+      { id: "notes", name: "notes", icon: "notes", render: function (box) {
+        if (!posts.length) box.appendChild(el("p", { "class": "app__text", text: "no notes yet" }));
+        posts.forEach(function (p, i) {
+          var n = el("a", { "class": "app__note", href: "/blog#post-" + (i + 1), style: "display:block" });
+          n.appendChild(el("span", { text: p.title || p.caption || p.quote || p.type }));
+          n.appendChild(el("small", { text: p.date + " · " + p.type }));
+          box.appendChild(n);
+        });
+      } },
+      { id: "contacts", name: "contacts", icon: "contacts", render: function (box) {
+        (settings.socials || []).forEach(function (sm) {
+          var row = el("a", { "class": "app__row", href: sm.url, target: "_blank", rel: "noopener" });
+          row.innerHTML = icon(sm.id, "icon") ;
+          row.querySelector("svg").style.width = "1.2em"; row.querySelector("svg").style.height = "1.2em"; row.querySelector("svg").style.fill = "#fff";
+          row.appendChild(el("span", { text: sm.id }));
+          row.appendChild(el("small", { text: "open" }));
+          box.appendChild(row);
+        });
+      } },
+      { id: "messages", name: "messages", icon: "messages", render: function (box) {
+        var ig = (settings.socials || []).filter(function (x) { return x.id === "instagram"; })[0];
+        box.appendChild(el("p", { "class": "app__text", text: "no email. dms only." }));
+        if (ig) { var a = el("a", { "class": "app__row", href: ig.url, target: "_blank", rel: "noopener" }); a.appendChild(el("span", { text: "message on instagram" })); a.appendChild(el("small", { text: "open" })); box.appendChild(a); }
+      } },
+      { id: "settings", name: "settings", icon: "settings", render: function (box) {
+        var toggles = [
+          { name: "negative", get: function () { return root.classList.contains("is-negative"); }, set: function (v) { setNegative(v); } },
+          { name: "grain", get: function () { return root.getAttribute("data-grain") !== "off"; }, set: function (v) { if (v) root.removeAttribute("data-grain"); else root.setAttribute("data-grain", "off"); } },
+          { name: "scanlines", get: function () { return root.getAttribute("data-scanlines") !== "off"; }, set: function (v) { if (v) root.removeAttribute("data-scanlines"); else root.setAttribute("data-scanlines", "off"); } },
+          { name: "colour fringe", get: function () { return root.getAttribute("data-fringe") !== "off"; }, set: function (v) { if (v) root.removeAttribute("data-fringe"); else root.setAttribute("data-fringe", "off"); } }
+        ];
+        toggles.forEach(function (t) {
+          var b = el("button", { "class": "app__toggle", type: "button", "aria-pressed": t.get() ? "true" : "false" });
+          b.appendChild(el("span", { text: t.name })); b.appendChild(el("i"));
+          b.addEventListener("click", function () { var v = !t.get(); t.set(v); b.setAttribute("aria-pressed", v ? "true" : "false"); });
+          box.appendChild(b);
+        });
+      } },
+      { id: "blog", name: "blog", icon: "blog", href: "/blog" },
+      { id: "work", name: "work", icon: "work", href: "/" }
+    ];
+    var DOCK = ["videos", "contacts", "messages", "blog"];
+
+    function appButton(app) {
+      var b = el(app.href ? "a" : "button", { "class": "home__app" });
+      if (app.href) b.setAttribute("href", app.href); else b.setAttribute("type", "button");
+      var ic = el("span", { "class": "home__icon" }); ic.innerHTML = icon(app.icon, "");
+      b.appendChild(ic); b.appendChild(el("span", { text: app.name }));
+      if (!app.href) b.addEventListener("click", function () { openApp(app); });
+      return b;
+    }
+    function openApp(app) {
+      appTitle.textContent = app.name;
+      appBody.innerHTML = "";
+      app.render(appBody);
+      show(appView);
+    }
+    var homeGrid = doc.getElementById("home-grid"), homeDock = doc.getElementById("home-dock");
+    APPS.forEach(function (app) { if (DOCK.indexOf(app.id) === -1) homeGrid.appendChild(appButton(app)); });
+    DOCK.forEach(function (id) { var app = APPS.filter(function (a) { return a.id === id; })[0]; if (app) homeDock.appendChild(appButton(app)); });
+
+    window.BV.phone = { use: use, letGo: letGo, open: function (id) { var app = APPS.filter(function (a) { return a.id === id; })[0]; if (app && app.render) { use(); openApp(app); } }, unlock: function () { use(); show(appHome); } };
   }
 
   doc.addEventListener("visibilitychange", function () { if (doc.hidden) stopAllPreviews(); });

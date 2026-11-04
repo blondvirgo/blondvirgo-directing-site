@@ -101,3 +101,20 @@ You now have a branch and a pull request. Keep its page open.
   another number (or `0` to stop the timer) and `onClick` to `false` to stop
   the click.
 - Never upload a file over 3MB. Full videos stay on Vimeo or YouTube.
+
+
+---
+
+## The blog (`/blog`)
+
+Posts live in `site/posts.js`, newest at the top. Each post is one block
+between `{` and `},`. The types are listed at the top of that file: text,
+photo, video, audio, quote, link, chat. Photos go in `site/images/`, audio
+files in `site/audio/` (MP3, under 3MB). Add a post the same way as a video:
+edit the file on a new branch, check the Deploy Preview, merge.
+
+## The phone (`/phone`)
+
+Nothing to maintain. The phone reads the same files: videos from
+`projects.js`, photos and notes from `posts.js`, contacts from the socials
+list in `projects.js`. Settings on the phone switch the site's effects.

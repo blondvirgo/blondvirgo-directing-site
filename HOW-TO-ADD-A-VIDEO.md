@@ -77,4 +77,8 @@ You now have a branch and a pull request. Keep its page open.
   shows first.
 - To switch the film grain off: in `projects.js` change `grain: true` to
   `grain: false`.
+- The big title breaks down into ALEX RUSU and back when clicked and every
+  60 seconds. In `projects.js` under `titleSwap`, change `everySeconds` to
+  another number (or `0` to stop the timer) and `onClick` to `false` to stop
+  the click.
 - Never upload a file over 3MB. Full videos stay on Vimeo or YouTube.

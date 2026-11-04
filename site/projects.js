@@ -33,6 +33,11 @@ const SETTINGS = {
   grain: true,            // set to false to switch the film grain off
   director: "ALEX RUSU",
   wordmark: "BLONDVIRGO",
+  // The big title "breaks down" into the director's name and back.
+  titleSwap: {
+    onClick: true,        // clicking the title swaps it
+    everySeconds: 60,     // automatic swap; set to 0 to turn the timer off
+  },
 };
 
 const PROJECTS = [

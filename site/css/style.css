@@ -26,16 +26,16 @@
 
   /* fonts */
   --font-display: "Archivo", "Arial Black", Impact, sans-serif;
-  --font-body: "Poppins", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-body: "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", system-ui, sans-serif;
 
-  --wordmark-stretch: 125%;
+  --wordmark-stretch: 112%;         /* was 125: a touch narrower, so letters stand taller */
   --wordmark-weight: 900;
-  --wordmark-tracking: -0.02em;
+  --wordmark-tracking: -0.005em;
   /* wordmark width: ~62% of the page on desktop, ~90% on phones.
      The number is the font size that makes "BLONDVIRGO" that wide. */
-  --wordmark-size: calc(1.08rem + 5.95vw);
+  --wordmark-size: calc(1.15rem + 6.3vw);
   --wordmark-size-footer: clamp(1.25rem, 3vw, 2.2rem);
-  --wordmark-glow: 0 0 18px rgba(255, 255, 255, 0.22);
+  --wordmark-glow: 0 0 10px rgba(255, 255, 255, 0.55), 0 0 36px rgba(255, 255, 255, 0.35), 0 0 80px rgba(255, 255, 255, 0.18);
 
   --weight-nav: 600;
   --weight-label: 600;
@@ -94,6 +94,9 @@
   --dur-hover: 0.6s;
   --dur-fade: 0.25s;
   --rise-distance: 22px;
+  --dur-breakdown: 0.55s;          /* each letter breaking apart / reassembling */
+  --breakdown-spread: 0.35s;       /* random stagger across the letters */
+  --breakdown-blur: 14px;
   --ease: cubic-bezier(0.22, 0.61, 0.36, 1);   /* calm, no overshoot */
 
   /* grain */
@@ -114,25 +117,25 @@
   src: url("/fonts/archivo-variable-latin.woff2") format("woff2");
 }
 @font-face {
-  font-family: "Poppins";
+  font-family: "Inter";
   font-style: normal;
   font-weight: 500;
   font-display: swap;
-  src: url("/fonts/poppins-500-latin.woff2") format("woff2");
+  src: url("/fonts/inter-500-latin.woff2") format("woff2");
 }
 @font-face {
-  font-family: "Poppins";
+  font-family: "Inter";
   font-style: normal;
   font-weight: 600;
   font-display: swap;
-  src: url("/fonts/poppins-600-latin.woff2") format("woff2");
+  src: url("/fonts/inter-600-latin.woff2") format("woff2");
 }
 @font-face {
-  font-family: "Poppins";
+  font-family: "Inter";
   font-style: normal;
   font-weight: 700;
   font-display: swap;
-  src: url("/fonts/poppins-700-latin.woff2") format("woff2");
+  src: url("/fonts/inter-700-latin.woff2") format("woff2");
 }
 
 /* 3. BASE ------------------------------------------------------------- */
@@ -209,6 +212,23 @@ h1, h2, p { margin: 0; }
   text-shadow: var(--wordmark-glow);
   white-space: nowrap;
 }
+
+/* Breakdown: the wordmark splits into letters that blur, drift and fade,
+   then the other name reassembles. Driven by main.js (click + timer). */
+.wordmark__letter {
+  display: inline-block;
+  white-space: pre;
+  transition:
+    opacity var(--dur-breakdown) var(--ease) var(--d, 0s),
+    transform var(--dur-breakdown) var(--ease) var(--d, 0s),
+    filter var(--dur-breakdown) var(--ease) var(--d, 0s);
+}
+.wordmark.is-breaking .wordmark__letter {
+  opacity: 0;
+  filter: blur(var(--breakdown-blur));
+  transform: translate(var(--dx, 0), var(--dy, 0)) rotate(var(--dr, 0deg));
+}
+.wordmark[data-swap] { cursor: pointer; }
 
 .nav {
   display: flex;
@@ -460,7 +480,8 @@ h1, h2, p { margin: 0; }
   cursor: default;
 }
 
-.player__frame iframe {
+.player__frame iframe,
+.player__poster {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -468,6 +489,14 @@ h1, h2, p { margin: 0; }
   border: 0;
   display: block;
 }
+
+/* the still sits under the video while Vimeo loads, then the video fades in */
+.player__poster { object-fit: contain; }
+.player__frame iframe {
+  opacity: 0;
+  transition: opacity var(--dur-hover) var(--ease);
+}
+.player__frame iframe.is-loaded { opacity: 1; }
 
 .player__caption {
   width: 100%;
@@ -593,6 +622,9 @@ html[data-grain="off"] .grain { display: none; }
   .player__close { transition: none; }
   .tile .tile__link:hover .tile__still { transform: none; }
   .tile__preview { display: none; }
+  .wordmark__letter { transition: opacity var(--dur-breakdown) var(--ease); }
+  .wordmark.is-breaking .wordmark__letter { transform: none; filter: none; }
+  .player__frame iframe { transition: none; }
 }
 
 /* 13. 404 PAGE -------------------------------------------------------- */

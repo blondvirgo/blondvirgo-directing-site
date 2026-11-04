@@ -157,7 +157,78 @@
     }));
   }
 
-  /* ---- 3. animations ----------------------------------------------- */
+  /* ---- 3. Breakdown: BLONDVIRGO <-> ALEX RUSU ------------------------ */
+  var wordmark = doc.getElementById("wordmark");
+  var swapCfg = settings.titleSwap || {};
+  var names = [settings.wordmark || "BLONDVIRGO", DIRECTOR];
+  var nameIndex = 0;
+  var swapping = false;
+
+  function setLetters(text, startBroken) {
+    wordmark.textContent = "";
+    var holder = el("span", { "aria-hidden": "true" });
+    text.split("").forEach(function (ch, i) {
+      var letter = el("span", { "class": "wordmark__letter", text: ch });
+      if (startBroken) scatter(letter);
+      holder.appendChild(letter);
+    });
+    wordmark.appendChild(holder);
+    return holder;
+  }
+
+  function scatter(letter) {
+    var rnd = function (a, b) { return a + Math.random() * (b - a); };
+    letter.style.setProperty("--dx", rnd(-0.35, 0.35).toFixed(2) + "em");
+    letter.style.setProperty("--dy", rnd(-0.45, 0.45).toFixed(2) + "em");
+    letter.style.setProperty("--dr", rnd(-10, 10).toFixed(1) + "deg");
+    letter.style.setProperty("--d", rnd(0, 0.35).toFixed(2) + "s");
+  }
+
+  function breakdownTo(index) {
+    if (!wordmark || swapping || index === nameIndex) return;
+    swapping = true;
+    var letters = wordmark.querySelectorAll(".wordmark__letter");
+    letters.forEach(scatter);
+    wordmark.classList.add("is-breaking");                       // letters blur, drift, fade
+
+    var outTime = reduceMotion ? 600 : 950;
+    setTimeout(function () {
+      nameIndex = index;
+      setLetters(names[nameIndex], true);                        // new word, already broken apart
+      void wordmark.offsetWidth;                                 // let the browser see that state
+      wordmark.classList.remove("is-breaking");                  // ...then reassemble
+      setTimeout(function () { swapping = false; }, 1000);
+    }, outTime);
+  }
+
+  function swapTitle() { breakdownTo(nameIndex === 0 ? 1 : 0); }
+
+  if (wordmark && wordmark.hasAttribute("data-swap")) {
+    setLetters(names[0], false);
+
+    if (swapCfg.onClick !== false) {
+      wordmark.addEventListener("click", function (e) {
+        e.preventDefault();                                      // stays put; just swaps
+        swapTitle();
+      });
+    }
+
+    var every = Number(swapCfg.everySeconds) || 0;
+    if (every > 0) {
+      var wordmarkVisible = true;
+      if ("IntersectionObserver" in window) {
+        new IntersectionObserver(function (entries) {
+          wordmarkVisible = entries[0].isIntersecting;
+        }, { threshold: 0.5 }).observe(wordmark);
+      }
+      setInterval(function () {
+        if (doc.hidden || !wordmarkVisible) return;              // not while nobody is looking
+        swapTitle();
+      }, every * 1000);
+    }
+  }
+
+  /* ---- 3b. animations ---------------------------------------------- */
   function reveal(node) { node.classList.add("is-in"); }
 
   // Blur-in: wordmark on load
@@ -239,13 +310,18 @@
     frame.style.setProperty("--ar-w", ar[0]);
     frame.style.setProperty("--ar-h", ar[1]);
     frame.innerHTML = "";
-    frame.appendChild(el("iframe", {
+    if (p.still) {
+      frame.appendChild(el("img", { "class": "player__poster", src: "/images/" + p.still, alt: "", "aria-hidden": "true" }));
+    }
+    var iframe = el("iframe", {
       src: embedUrl(p),
       title: label(p) + " (video)",
       allow: "autoplay; fullscreen; picture-in-picture; encrypted-media",
       allowfullscreen: "",
       referrerpolicy: "strict-origin-when-cross-origin"
-    }));
+    });
+    iframe.addEventListener("load", function () { iframe.classList.add("is-loaded"); });
+    frame.appendChild(iframe);
     caption.textContent = label(p) + " · " + p.year + " · DIRECTED BY " + DIRECTOR;
 
     lastFocus = doc.activeElement;
@@ -261,6 +337,25 @@
     doc.body.classList.remove("is-locked");
     if (lastFocus && lastFocus.focus) lastFocus.focus();
     lastFocus = null;
+  }
+
+  // warm up the connection to the video host the first time a tile is touched
+  var preconnected = false;
+  function preconnect(host) {
+    if (preconnected) return;
+    preconnected = true;
+    doc.head.appendChild(el("link", { rel: "preconnect", href: host, crossorigin: "" }));
+  }
+  if (grid) {
+    var warm = function (e) {
+      var link = e.target.closest(".tile__link");
+      if (!link) return;
+      var p = projects[Number(link.getAttribute("data-index"))];
+      preconnect(p && p.platform === "youtube" ? "https://www.youtube-nocookie.com" : "https://player.vimeo.com");
+    };
+    grid.addEventListener("mouseover", warm);
+    grid.addEventListener("touchstart", warm, { passive: true });
+    grid.addEventListener("focusin", warm);
   }
 
   if (grid) {

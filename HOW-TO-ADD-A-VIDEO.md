@@ -39,10 +39,12 @@ You now have a branch and a pull request. Keep its page open.
     platform: "vimeo",
     link: "https://vimeo.com/blondvirgo/the-video",
     embedId: "123456789",
+    embedHash: "",
     aspect: "1:1",
     still: "artist-song.jpg",
     preview: "",
     featured: false,
+    published: true,
     credits: [],
   },
 ```
@@ -51,6 +53,13 @@ You now have a branch and a pull request. Keep its page open.
      tab → copy the digits after `player.vimeo.com/video/`.
    - `embedId` for YouTube: the code after `v=` in the video's address. Also
      set `platform: "youtube"`.
+   - `embedHash` (Vimeo only): if the video is set to **Private link** or
+     **Hide from Vimeo**, Vimeo needs a secret code. On the video page click
+     **Share**, then the **Embed** tab, and copy the letters and numbers
+     after `?h=` in the code box. Leave `""` if the video is public.
+   - `published: true` shows the video. `false` keeps it off the site while
+     you are still filling it in. The three blocks already in the file for
+     your other Vimeo videos are set to `false`.
    - `aspect` is `"1:1"` or `"4:3"`. The site never crops.
    - `still` must match the filename you uploaded exactly.
    - Keep the comma after the closing `}`.
@@ -71,8 +80,14 @@ You now have a branch and a pull request. Keep its page open.
 
 ## Tips
 
-- If a video will not play in the player, open it on Vimeo → **Settings** →
-  **Privacy** → make sure embedding is allowed **Anywhere**.
+- If a video will not play in the player: open it on Vimeo → **Settings** →
+  **Privacy**. Set **Where can this be embedded** to **Anywhere**. If **Who
+  can watch** is **Private link** or **Hide from Vimeo**, also fill in
+  `embedHash` (see above). The quickest fix of all is to set **Who can
+  watch** to **Anyone**.
+- Effects: in `projects.js` you can switch off `scanlines`, `grain`,
+  `fxOnLoad` (the glitch when the page opens), `fxOnTiles` (the tear when a
+  video opens) and `colourFringe` (red/cyan in the glitches; off = white).
 - To change the order, move the blocks. The one with `featured: true` always
   shows first.
 - To switch the film grain off: in `projects.js` change `grain: true` to

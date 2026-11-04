@@ -54,9 +54,16 @@
 <body id="top">
 
   <div class="grain" aria-hidden="true"></div>
+  <div class="scanlines" aria-hidden="true"></div>
 
   <header class="masthead">
-    <a class="wordmark blur-in" id="wordmark" href="#top" data-swap aria-label="BLONDVIRGO">BLONDVIRGO</a>
+    <h1 class="masthead__title">
+      <a class="wordmark blur-in" id="wordmark" href="#top" data-swap aria-label="BLONDVIRGO">
+        <span class="wordmark__text">BLONDVIRGO</span>
+        <span class="wordmark__ghost wordmark__ghost--a" aria-hidden="true">BLONDVIRGO</span>
+        <span class="wordmark__ghost wordmark__ghost--b" aria-hidden="true">BLONDVIRGO</span>
+      </a>
+    </h1>
     <nav class="nav" aria-label="Main">
       <a class="nav__link" href="#work">Work</a>
       <a class="nav__link" href="#contact">Contact</a>
@@ -64,15 +71,12 @@
   </header>
 
   <main>
-    <section class="hero" aria-labelledby="name">
-      <p class="hero__kicker rise" style="--i: 0">Director</p>
-      <h1 class="hero__name rise" id="name" style="--i: 1">Alex Rusu</h1>
+    <section class="hero" aria-label="Contact">
+      <!-- BIO: hidden until a DRAFT is chosen. To show it, paste the text
+           between the <p> tags and delete the word "hidden". -->
+      <p class="hero__bio rise" id="bio" style="--i: 0" hidden></p>
 
-      <!-- BIO: hidden until a DRAFT is chosen. To show it, paste the chosen
-           text between the <p> tags and delete the word "hidden". -->
-      <p class="hero__bio rise" id="bio" style="--i: 2" hidden></p>
-
-      <ul class="socials rise" style="--i: 3" aria-label="Contact BLONDVIRGO on social media">
+      <ul class="socials rise" style="--i: 1" aria-label="Contact BLONDVIRGO on social media">
         <li><a class="socials__link" href="https://www.instagram.com/arussuuuu/" target="_blank" rel="noopener" aria-label="BLONDVIRGO on Instagram (opens in a new tab)">
           <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill-rule="evenodd" d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm0 2a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3H7zm5 3.3a4.7 4.7 0 1 1 0 9.4 4.7 4.7 0 0 1 0-9.4zm0 2a2.7 2.7 0 1 0 0 5.4 2.7 2.7 0 0 0 0-5.4zm5.2-3.4a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2z"/></svg>
         </a></li>
@@ -126,6 +130,7 @@
     <div class="player__stage" id="player-stage">
       <div class="player__frame" id="player-frame"></div>
       <p class="player__caption" id="player-caption"></p>
+      <a class="player__external" id="player-external" href="#" target="_blank" rel="noopener">watch on vimeo</a>
     </div>
     <span class="player__sentinel" id="player-sentinel-end" tabindex="0" aria-hidden="true"></span>
   </div>

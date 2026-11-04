@@ -1,18 +1,18 @@
-1440: {"wordmarkWidth":888.21875,"pageWidth":1440,"pct":"61.7","font":"Archivo, \"Arial Black\", Impact, sans-serif","stretch":"112%","weight":"900","fonts":["Archivo 100 900 62% 125% loaded","Inter 500 normal loaded","Inter 600 normal loaded","Inter 700 normal loaded"],"tiles":1,"count":"1","tileW":600,"heroIn":[true,true,true,true],"wmIn":true}
+1440: {"wordmarkWidth":888.21875,"pageWidth":1440,"pct":"61.7","font":"Archivo, \"Arial Black\", Impact, sans-serif","stretch":"112%","weight":"900","fonts":["Archivo 100 900 62% 125% loaded","Inter 500 normal loaded","Inter 600 normal loaded","Inter 700 normal loaded"],"tiles":1,"count":"1","tileW":600,"heroIn":[true,true],"wmIn":true}
 1440 overflow: {"docW":1440,"clientW":1440,"bad":[]}
 hover zoom before=none after=matrix(1.03, 0, 0, 1.03, 0, 0)
-player open: {"hidden":false,"frame":[760,760,340,53.203125],"caption":"ANTZZ FEAT. VIRIDIAN – GIVENCHY SLIDES · 2026 · DIRECTED BY ALEX RUSU","iframe":"https://player.vimeo.com/video/1238961800?dnt=1&autoplay=1&title=0&byline=0&portrait=0&color=ffffff","focus":"player-close","locked":true}
-tab trap: tab1=IFRAME tab2=player-close shift-tab x2=player-close
+player open: {"hidden":false,"frame":[760,760,340,37.109375],"caption":"ANTZZ FEAT. VIRIDIAN – GIVENCHY SLIDES · 2026 · directed by ALEX RUSU","iframe":"https://player.vimeo.com/video/1238961800?dnt=1&autoplay=1&title=0&byline=0&portrait=0&color=ffffff","focus":"player-close","locked":true}
+tab trap: tab1=IFRAME tab2=player-external shift-tab x2=player-close
 after Esc: hidden=true focus=tile__link iframes=0
 Enter opens: hidden=false
 click black area closes: hidden=true
 X closes: hidden=true
-after CONTACT click scrollY=1147 footerTop=576
+after CONTACT click scrollY=691 footerTop=576
 focus after 4 tabs: BLONDVIRGO on Instagram (opens in a new tab)
 json-ld types: Person,ItemList
 reduced motion: {"grain":"none","wmOpacity":"1","tileOpacity":"1","scroll":"auto"}
-no-JS: {"wmOpacity":"1","nameOpacity":"1","noscript":true}
-390: {"pct":"89.7","tileW":358,"docW":390,"navRow":27,"name":"52px","kicker":"24px","margin":"16px"}
+no-JS: {"wmOpacity":"1","iconsOpacity":"1","noscript":true}
+390: {"pct":"89.7","tileW":358,"docW":390,"navRow":27,"margin":"16px"}
 390 overflow: {"docW":390,"clientW":390,"bad":[]}
-390 player: {"hidden":false,"frame":[358,358,16,216.40625]}
+390 player: {"hidden":false,"frame":[358,358,16,200.3125]}
 390 close: hidden=true

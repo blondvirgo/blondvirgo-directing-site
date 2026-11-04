@@ -20,6 +20,11 @@
    link      – the public page of the video.                  (required)
    embedId   – Vimeo: the number from Share > Embed.
                YouTube: the code after "v=" in the link.      (required)
+   embedHash – Vimeo ONLY, for videos set to "Private link" / "Hide from
+               Vimeo": the code after "?h=" in the Share > Embed code,
+               or after the second slash in the share link
+               (vimeo.com/123456789/THISPART). Leave "" if public.
+   published – false hides the video from the site until it is ready.
    aspect    – "1:1" (default) or "4:3". Never cropped.
    still     – filename inside site/images/.                  (required)
    stillSizes– leave out unless your developer has made
@@ -30,14 +35,21 @@
    ===================================================================== */
 
 const SETTINGS = {
-  grain: true,            // set to false to switch the film grain off
+  grain: true,            // film grain over the page. false = off
+  scanlines: true,        // faint VHS lines over the page. false = off
   director: "ALEX RUSU",
   wordmark: "BLONDVIRGO",
-  // The big title "breaks down" into the director's name and back.
+
+  // The big title switches between the wordmark and the director's name,
+  // using a different effect each time (breakdown, rgb split, vhs, flicker,
+  // negative, crush, static, slide). See the EFFECTS list in js/main.js.
   titleSwap: {
-    onClick: true,        // clicking the title swaps it
-    everySeconds: 60,     // automatic swap; set to 0 to turn the timer off
+    onClick: true,        // clicking the title triggers an effect + swap
+    everySeconds: 60,     // automatic swap; 0 = timer off
   },
+  fxOnLoad: true,         // one short rgb-split hit when the page opens
+  fxOnTiles: true,        // glitch when a tile is opened
+  colourFringe: true,     // red/cyan fringes in the glitch effects. false = white only
 };
 
 const PROJECTS = [
@@ -48,13 +60,63 @@ const PROJECTS = [
     platform: "vimeo",
     link: "https://vimeo.com/blondvirgo/givenchy-slides",
     embedId: "1238961800", // [PLACEHOLDER: still needed] – one of your four Vimeo IDs; confirm which one is GIVENCHY SLIDES
+    embedHash: "",         // [PLACEHOLDER: still needed] – see "embedHash" above if the video is a private link
     aspect: "1:1",
+    published: true,
     // STAND-IN: this still is from your "I Spy" footage, used until a
     // GIVENCHY SLIDES still is uploaded. Replace the filename when ready.
     still: "i-spy-003.jpg",
     stillSizes: [800, 1600],
     preview: "",
     featured: true,
+    credits: [],
+  },
+
+  /* ---- Your other three Vimeo videos. They stay OFF the site until you
+          fill in artist + title + a still and set published: true. ---- */
+  {
+    artist: "[PLACEHOLDER: still needed]",
+    title: "[PLACEHOLDER: still needed]",
+    year: 2026,
+    platform: "vimeo",
+    link: "https://vimeo.com/1238971039",
+    embedId: "1238971039",
+    embedHash: "",
+    aspect: "1:1",
+    still: "",             // upload a still to site/images/ and put its filename here
+    preview: "",
+    featured: false,
+    published: false,
+    credits: [],
+  },
+  {
+    artist: "[PLACEHOLDER: still needed]",
+    title: "[PLACEHOLDER: still needed]",
+    year: 2026,
+    platform: "vimeo",
+    link: "https://vimeo.com/1238970905",
+    embedId: "1238970905",
+    embedHash: "",
+    aspect: "1:1",
+    still: "",
+    preview: "",
+    featured: false,
+    published: false,
+    credits: [],
+  },
+  {
+    artist: "[PLACEHOLDER: still needed]",
+    title: "[PLACEHOLDER: still needed]",
+    year: 2026,
+    platform: "vimeo",
+    link: "https://vimeo.com/1238956867",
+    embedId: "1238956867",
+    embedHash: "",
+    aspect: "1:1",
+    still: "",
+    preview: "",
+    featured: false,
+    published: false,
     credits: [],
   },
 ];
